@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Our Services</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/services.css') }}"
+    />
+
+  </head>
+  <body>
+
+    <header>
+      <h1>Our Services</h1>
+      <button class="back-button" onclick="window.location.href='{{ url_for('home') }}';">
+        &#8592; Back
+      </button>
+    </header>
+
+    <div class="cards">
+      {% for service in services %}
+      <div class="card">
+        <h3>{{ service.service_name }}</h3>
+        <p>Duration: 
+          {% if 'hour' in service.duration %}
+              {{ service.duration.split(' ')[0] | int * 60 }} minutes
+          {% elif 'minute' in service.duration %}
+              {{ service.duration.split(' ')[0] }} minutes
+          {% else %}
+              {{ service.duration }} minutes
+          {% endif %}
+      </p>
+        <p><strong>Cost: ₹</strong> {{ service.cost }}</p>
+        <p><strong>Description:</strong> {{ service.description }}</p>
+        <a href="{{ url_for('trainers_by_service', service_id=service.id) }}">Check Out</a>
+        
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+
+   
+
+  </body>
+</html>

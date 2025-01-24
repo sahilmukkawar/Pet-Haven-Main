@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ service.service_name }} Trainers</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/trainers.css') }}"
+    />
+  </head>
+  <body>
+    <header>
+    <h1>Trainers for {{ service.service_name }}</h1>
+    <button class="back-button" onclick="window.location.href='{{ url_for('list_services') }}';">
+      &#8592; Back
+    </button>
+    </header>
+    <ul>
+      {% for trainer in trainers %}
+      <li>
+        <img
+          src="{{ trainer.profile_pic }}"
+          alt="{{ trainer.tname }}"
+          width="100"
+        />
+        <h3>{{ trainer.name }}</h3>
+        <p>Experience: {{ trainer.experience }}</p>
+        <p>Rating: {{ trainer.rating }}</p>
+        <p>{{ trainer.description }}</p>
+        <br />
+        <a
+          class="button"
+          href="{{ url_for('direct_appointment', trainer_id=trainer.id,service_id=trainer.service_id) }}"
+          >Book Now</a
+        >
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>

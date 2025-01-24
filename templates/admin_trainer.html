@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ service.service_name }} Trainers</title>
+    <link
+      rel="stylesheet"
+      href="{{url_for('static',filename='css/services.css')}}"
+    />
+    <style>
+      /* General Styling */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background-color: #f5f7fa;
+        color: #2d3748;
+        line-height: 1.6;
+      }
+
+      /* Typography */
+      h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+      }
+
+      h3 {
+        font-size: 1.5rem;
+        margin: 16px 0 8px;
+        color: #2d3748;
+      }
+
+      p {
+        color: #4a5568;
+        margin: 8px 0;
+      }
+
+      /* Header Section */
+      .trainer-list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background-color: #4CAF50;
+        color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Preserving Original Button Styles */
+      .add-trainer-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #fff;
+        color: #4CAF50;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        border: 1.5px solid black;
+        transition: 0.3s;
+      }
+
+      .add-trainer-button:hover {
+        background-color: #45a049;
+        color: white;
+        border-color: #45a049;
+      }
+
+      .button {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #45a049;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: 0.3s;
+      }
+
+      .button:hover {
+        background-color: #3d8b40;
+      }
+
+      /* Trainer Grid Layout */
+      ul {
+        list-style: none;
+        padding: 32px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 32px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      /* Trainer Card */
+      li {
+        background-color: rgba(255, 255, 255);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        text-align: center;
+        transition: transform 0.3s ease;
+        border: 1.5px solid black;
+      }
+
+      li:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Profile Image */
+      img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 0 auto 16px;
+        padding: 3px;
+      }
+
+      /* Action Buttons Container */
+      .action-buttons {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      /* Preserving Original Action Button Styles */
+      .edit-btn {
+        padding: 6px 20px;
+        background-color: #2aa936;
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      .edit-btn:hover {
+        background-color: #308c2d;
+      }
+
+      .delete-btn {
+        padding: 8px 16px;
+        background-color: #f44336;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      .delete-btn:hover {
+        background-color: #D32F2F;
+      }
+      .add-tainer-btn {
+        text-align: center;
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+      }
+      .add-trainer-btn a {
+        background-color: #ff8c00;
+        color: white;
+        padding: 15px 30px;
+        font-size: 1.2em;
+        border-radius: 5px;
+        text-decoration: none;
+      }
+      .add-trainer-btn a:hover {
+        background-color: #e07b00;
+      }
+
+      /* Alert Messages */
+      .alert {
+        margin: 20px;
+        padding: 15px;
+        border-radius: 5px;
+      }
+
+      .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      /* Rating and Experience */
+      .rating {
+        color: #1b1b1a;
+        font-weight: 600;
+      }
+
+      .experience {
+        font-weight: 500;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .trainer-list-header {
+          flex-direction: column;
+          gap: 16px;
+          text-align: center;
+        }
+
+        ul {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="trainer-list-header">
+      <h1>Trainers for {{ service.service_name }}</h1>
+      <button class="back-button" onclick="window.history.back();">
+        &#8592; Back
+      </button>
+    </div>
+
+    
+    <!-- Trainer List -->
+    <ul>
+      {% for trainer in service.trainers %}
+      <li>
+        <img
+          src="{{ url_for('static', filename=trainer.profile_pic) }}"
+          alt="{{ trainer.tname }}"
+        />
+        <h3>{{ trainer.name }}</h3>
+        <p class="experience">Experience: {{ trainer.experience }}</p>
+        <p class="rating">Rating: {{ trainer.rating }}/5</p>
+        <p>{{ trainer.description }}</p>
+        
+        <div class="action-buttons">
+          <a href="{{ url_for('edit_trainer', service_id=service.id, trainer_id=trainer.id) }}" class="edit-btn">Edit</a>
+          <form action="{{ url_for('delete_trainer', service_id=service.id, trainer_id=trainer.id) }}" method="POST" style="display: inline;">
+            <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this trainer?')">
+              Delete
+            </button>
+          </form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    
+    <a href="{{ url_for('add_trainer', service_id=service.id) }}" class="add-trainer-button">+Add Trainer</a>
+
+  </body>
+</html>

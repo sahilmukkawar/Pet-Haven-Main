@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book an Appointment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/appointment.css') }}">
+    <style>
+
+    /* Header Styles */
+header {
+  background-color: rgba(76, 175, 80, 0.8); /* Transparent green */
+  color: white;
+  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 45px;
+  position: relative;
+  z-index: 1;
+  animation: slideIn 1s ease-out;
+}
+
+header h1 {
+  margin-left: 150px;
+  font-size: 2.5em;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
+  transform: translateY(-30px);
+  animation: fadeIn 1.5s ease-out forwards;
+}
+
+/* Back Button Styles */
+.back-button {
+  background: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  color: #45a049;
+  cursor: pointer;
+  width: 120px;
+  height: 35px;
+  margin-right: 50px;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+  transform: translateY(-30px);
+  animation: fadeIn 2s ease-out forwards;
+}
+
+.back-button:hover {
+  background: #45a049;
+  color: white;
+}
+
+        .booking-details{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: rgba(255,255,255);
+            border-radius: 10px;
+            margin: 20px auto;
+            color:black;
+            border: 1.5px solid black;
+            width: 90%;
+            max-width: 400px;
+
+        
+        }
+    </style>
+</head>
+<body>
+    <div class="appointment-container">
+        <div class="header">
+            <header>
+            <h1>Book An Appointment</h1>
+            <button class="back-button" onclick="window.history.back();">
+                &#8592; Back
+              </button>
+            </header>
+        </div>
+        
+        <div class="booking-details">
+        
+        
+        <form action="{{ url_for('confirm_appointment', service_id=service.id) }}" method="POST" id="bookingForm">
+            <input type="hidden" name="trainer_id" value="{{ trainer.id }}">
+            <input type="hidden" name="service_id" value="{{ service.id }}">
+            <div class="form-group">
+                <label for="date">Select Date:</label>
+                <input type="date" id="date" name="date" required 
+                       min="{{ today }}" max="{{ max_date }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="time_slot">Select Time Slot:</label>
+                <select id="time_slot" name="time_slot" required disabled>
+                    <option value="">Select a date </option>
+                </select>
+            </div>
+            <button type="submit" id="submitBtn" disabled>Confirm </button>
+
+        </form>
+    </div>
+</div>
+
+
+<script>
+    document.getElementById('date').addEventListener('change', async function() {
+    const dateInput = this.value;
+    const trainerId = {{ trainer.id }};  // Ensure that this is properly set in the template.
+    const timeSlotSelect = document.getElementById('time_slot');
+
+    // Reset the time slot dropdown and show loading message
+    timeSlotSelect.innerHTML = '<option value="">Loading available slots...</option>';
+    timeSlotSelect.disabled = true;  // Disable time slot dropdown while loading
+
+    try {
+        // Fetch available slots based on selected date and trainer
+        const response = await fetch('/get-available-slots', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                date: dateInput,
+                trainer_id: trainerId
+            })
+        });
+
+        if (response.ok) {
+            const availableSlots = await response.json();
+            timeSlotSelect.innerHTML = '';  // Clear the loading message
+
+            if (availableSlots.length === 0) {
+                timeSlotSelect.innerHTML = '<option value="">No available slots</option>';
+                timeSlotSelect.disabled = true;  // Disable if no slots available
+            } else {
+                timeSlotSelect.innerHTML = '<option value="">Select a time slot...</option>';
+                availableSlots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot.id;
+                    option.textContent = slot.time;
+                    timeSlotSelect.appendChild(option);
+                });
+                timeSlotSelect.disabled = false;  // Enable dropdown after adding options
+            }
+        } else {
+            console.error('Failed to fetch available slots:', response.statusText);
+            timeSlotSelect.innerHTML = '<option value="">Error loading slots</option>';
+            timeSlotSelect.disabled = true;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        timeSlotSelect.innerHTML = '<option value="">Error loading slots</option>';
+        timeSlotSelect.disabled = true;
+        console.log('Sending data:', { date: dateInput, trainer_id: trainerId });
+        console.log('Available slots:', availableSlots);
+
+    }
+});
+
+    
+    document.getElementById('time_slot').addEventListener('change', function() {
+        document.getElementById('submitBtn').disabled = !this.value;
+    });
+
+
+        // Add to Cart functionality
+        document.getElementById("addToCartButton").addEventListener("click", function() {
+            const selectedDate = document.getElementById("date").value;
+            const selectedTimeSlot = document.getElementById("time_slot").value;
+            const service = "{{ service.name }}";  // Assuming you have a `service` object with a `name` attribute
+            const trainer = "{{ trainer.name }}";  // Assuming you have a `trainer` object with a `name` attribute
+            
+            // Check if both date and time slot are selected
+            if (!selectedDate || !selectedTimeSlot) {
+                alert("Please select a date and time slot before adding to cart.");
+                return;
+            }
+
+            // Create a cart object with selected details
+            const cart = {
+                service: service,
+                trainer: trainer,
+                date: selectedDate,
+                timeSlot: selectedTimeSlot
+            };
+
+            // Save cart object to localStorage
+            localStorage.setItem("appointmentCart", JSON.stringify(cart));
+
+            // Redirect to cart.html to view the cart details
+            window.location.href = "cart.html";  // Adjust path if needed
+        });
+    </script>
+</body>
+</html>
