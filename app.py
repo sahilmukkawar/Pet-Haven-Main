@@ -969,7 +969,7 @@ def add_to_cart():
         # Handle dog addition
         if dog_id:
             dog = Dog.query.get_or_404(dog_id)
-            existing_item = Cart.query.filter_by(user_id=user_id, dog_id=dog_id).first()
+            existing_item = Cart.query.filter_by(user_id=user_id, dog_id=dog_id,confirm_booking=False).first()
 
             if existing_item:
                 print("Dog already in cart")
