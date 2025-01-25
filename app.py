@@ -1313,6 +1313,11 @@ def process_checkout():
 def payments():
     return render_template('payments.html')
 
+@app.route('/thank-you', methods=['POST'])
+def thank_you():
+    payment_method = request.form.get('payment_method')
+    # Optionally process payment details here
+    return render_template('thankyou.html', payment_method=payment_method)
 
 @app.route('/submit_payment', methods=['POST'])
 def submit_payment():
@@ -1779,21 +1784,30 @@ def get_available_slots():
     # Get all time slots
     all_slots = TimeSlot.query.all()
     
-    # Get booked slots for the selected date and trainer
+    # Get booked slot IDs for the selected date and trainer
     booked_slots = db.session.query(TimeSlot.id).join(Booking).filter(
         Booking.booking_date == date,
         Booking.trainer_id == trainer_id
     ).all()
-    booked_slot_ids = [slot.id for slot in booked_slots]
+    booked_slot_ids = [slot[0] for slot in booked_slots]  # Extract IDs from tuples
     
-    # Filter out booked slots
+    # Prepare available slots
     available_slots = [
         {'id': slot.id, 'time': slot.time_slot}
         for slot in all_slots
         if slot.id not in booked_slot_ids
     ]
     
-    return jsonify(available_slots)
+    # Prepare booked slots
+    booked_slots_data = [
+        {'id': slot_id, 'time': TimeSlot.query.get(slot_id).time_slot}
+        for slot_id in booked_slot_ids
+    ]
+    
+    return jsonify({
+        'availableSlots': available_slots,
+        'bookedSlots': booked_slots_data
+    })
 
 
 @app.route('/services/<int:service_id>/appointments/confirm-appointment', methods=['POST'])

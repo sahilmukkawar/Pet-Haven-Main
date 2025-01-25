@@ -9,17 +9,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap">
-    <style>
-        .error-message {
-            color: red;
-            font-size: 0.8em;
-            margin-top: 5px;
-            display: none;
-        }
-        .input-error {
-            border: 2px solid red;
-        }
-    </style>
 </head>
 
 <body>
@@ -105,6 +94,7 @@
                             <div class="item-details">
                                 <h4>{{ item.breed if item.breed else (item.tname if item.tname else item.title) }}</h4>
                                 {% if item.breed %}
+                                   <img src="{{ url_for('static', filename=item['image']) }}" alt="{{ item['title'] or item['breed'] }}">
                                     <p>Quantity: {{ item.quantity }}x</p>
                                     <p class="price">₹{{ item.price * item.quantity }}</p>
                                 {% elif item.title %}
@@ -170,196 +160,7 @@
             <p>If you have any questions about these terms and conditions, please contact us at <a href="mailto:support@pethaven.com">support@pethaven.com</a>.</p>
         </div>
     </div>
-    <style>
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
 
-        .modal-content {
-            background-color: #fff;
-            margin: 10% auto;
-            padding: 20px;
-            border-radius: 8px;
-            width: 80%;
-            max-width: 600px;
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-    </style>
-
-    <script>
-        // Validation Functions
-        function validateFullName() {
-            const fullName = document.getElementById('fullName');
-            const fullNameError = document.getElementById('fullNameError');
-            const nameRegex = /^[a-zA-Z\s]{3,50}$/;
-
-            if (!nameRegex.test(fullName.value.trim())) {
-                fullName.classList.add('input-error');
-                fullNameError.style.display = 'block';
-                return false;
-            }
-            fullName.classList.remove('input-error');
-            fullNameError.style.display = 'none';
-            return true;
-        }
-
-        function validateEmail() {
-            const email = document.getElementById('email');
-            const emailError = document.getElementById('emailError');
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-            if (!emailRegex.test(email.value.trim())) {
-                email.classList.add('input-error');
-                emailError.style.display = 'block';
-                return false;
-            }
-            email.classList.remove('input-error');
-            emailError.style.display = 'none';
-            return true;
-        }
-
-        function validatePhone() {
-            const phone = document.getElementById('phone');
-            const phoneError = document.getElementById('phoneError');
-            const phoneRegex = /^[6-9]\d{9}$/;
-
-            if (!phoneRegex.test(phone.value.trim())) {
-                phone.classList.add('input-error');
-                phoneError.style.display = 'block';
-                return false;
-            }
-            phone.classList.remove('input-error');
-            phoneError.style.display = 'none';
-            return true;
-        }
-
-        function validateCity() {
-            const city = document.getElementById('city');
-            const cityError = document.getElementById('cityError');
-            const cityRegex = /^[a-zA-Z\s]{2,50}$/;
-
-            if (city.value.trim() && !cityRegex.test(city.value.trim())) {
-                city.classList.add('input-error');
-                cityError.style.display = 'block';
-                return false;
-            }
-            city.classList.remove('input-error');
-            cityError.style.display = 'none';
-            return true;
-        }
-
-        function validateState() {
-            const state = document.getElementById('state');
-            const stateError = document.getElementById('stateError');
-            const stateRegex = /^[a-zA-Z\s]{2,50}$/;
-
-            if (state.value.trim() && !stateRegex.test(state.value.trim())) {
-                state.classList.add('input-error');
-                stateError.style.display = 'block';
-                return false;
-            }
-            state.classList.remove('input-error');
-            stateError.style.display = 'none';
-            return true;
-        }
-
-        function validatePincode() {
-            const pincode = document.getElementById('pincode');
-            const pincodeError = document.getElementById('pincodeError');
-            const pincodeRegex = /^\d{6}$/;
-
-            if (pincode.value.trim() && !pincodeRegex.test(pincode.value.trim())) {
-                pincode.classList.add('input-error');
-                pincodeError.style.display = 'block';
-                return false;
-            }
-            pincode.classList.remove('input-error');
-            pincodeError.style.display = 'none';
-            return true;
-        }
-
-        function validateTerms() {
-            const termsCheckbox = document.getElementById('terms');
-            const termsError = document.getElementById('termsError');
-
-            if (!termsCheckbox.checked) {
-                termsError.style.display = 'block';
-                return false;
-            }
-            termsError.style.display = 'none';
-            return true;
-        }
-
-        // Add event listeners for real-time validation
-        document.getElementById('fullName').addEventListener('blur', validateFullName);
-        document.getElementById('email').addEventListener('blur', validateEmail);
-        document.getElementById('phone').addEventListener('blur', validatePhone);
-        document.getElementById('city').addEventListener('blur', validateCity);
-        document.getElementById('state').addEventListener('blur', validateState);
-        document.getElementById('pincode').addEventListener('blur', validatePincode);
-        document.getElementById('terms').addEventListener('change', validateTerms);
-
-        // Checkout Form Validation
-        function validateCheckoutForm() {
-            const isFullNameValid = validateFullName();
-            const isEmailValid = validateEmail();
-            const isPhoneValid = validatePhone();
-            const isCityValid = validateCity();
-            const isStateValid = validateState();
-            const isPincodeValid = validatePincode();
-            const isTermsAccepted = validateTerms();
-
-            return isFullNameValid && isEmailValid && isPhoneValid && 
-                   isCityValid && isStateValid && isPincodeValid && 
-                   isTermsAccepted;
-        }
-
-        // Pay Now button handler
-        document.getElementById('payNow').addEventListener('click', function(event) {
-            event.preventDefault();
-            
-            if (validateCheckoutForm()) {
-                window.location.href = '/payments';
-            }
-        });
-
-        // Terms and Conditions Modal Logic
-        document.getElementById('termsLink').addEventListener('click', function (event) {
-            event.preventDefault();
-            document.getElementById('termsModal').style.display = 'block';
-        });
-
-        document.getElementById('closeModal').addEventListener('click', function () {
-            document.getElementById('termsModal').style.display = 'none';
-        });
-
-        window.addEventListener('click', function (event) {
-            if (event.target === document.getElementById('termsModal')) {
-                document.getElementById('termsModal').style.display = 'none';
-            }
-        });
-    </script>
+<script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
 </body>
 </html>
