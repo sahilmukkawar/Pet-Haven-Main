@@ -10,6 +10,7 @@ from models import Booking, Cart, Competition, Dog, DogDetails, Service, TimeSlo
 from flask_socketio import SocketIO, emit
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_mail import Mail, Message
+from flask_migrate import Migrate
 from random import randint
 from datetime import datetime, timedelta, timezone
 import logging
@@ -17,7 +18,7 @@ import logging
 ## team 3 imports
 
 
-from flask_migrate import Migrate
+
 
 import time
 import razorpay
