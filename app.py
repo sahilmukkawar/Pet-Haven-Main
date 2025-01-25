@@ -6,7 +6,7 @@ import random, os
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import Booking, Cart, Competition, Dog, DogDetails, Service, TimeSlot, Trainer, TrainerEditRequest, UserDetails, Wishlist, db, User, Notification,TrainerInfo
+from models import Booking, Cart, Competition, Dog, DogDetails, Service, TimeSlot, Trainer, TrainerEditRequest, UserDetails, Wishlist, db, User, Notification,TrainerInfo,Revenue
 from flask_socketio import SocketIO, emit
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_mail import Mail, Message
@@ -14,14 +14,10 @@ from flask_migrate import Migrate
 from random import randint
 from datetime import datetime, timedelta, timezone
 import logging
+from sqlalchemy import func
 
 ## team 3 imports
 
-
-
-
-import time
-import razorpay
 from werkzeug.utils import secure_filename
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_mail import Mail, Message
@@ -51,8 +47,6 @@ UPLOAD_FOLDER = os.path.join('static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['RAZORPAY_KEY_ID'] = 'rzp_test_SQTJsEbtRpGcGI'
-app.config['RAZORPAY_KEY_SECRET'] = 'W6CbPIl5Y6JnepdISTv0GpqY'
 
 #team 3 end
 
@@ -152,6 +146,54 @@ with app.app_context():
           if not TimeSlot.query.filter_by(time_slot=slot).first():
             db.session.add(TimeSlot(time_slot=slot))
             db.session.commit()
+
+
+#team 5
+def init_db():
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+
+        # Insert sample data
+        sample_data = [
+            # Example 1: Dog Sale + Training + Competition
+            Revenue(
+                date="2022-01-07",
+                revenue_type="All",  # All three services
+                dog_name="Golden Retriever",
+                dog_sales=45000,  # Dog sale amount
+                trainer_name="John Doe",
+                commission=7500,  # Training commission
+                competition_name="Agility Championship",
+                competition_amount=10000,  # Competition earnings
+            ),
+            # Example 2: Dog Sale + Training
+            Revenue(
+                date="2022-01-08",
+                revenue_type="Dog Sales & Training",
+                dog_name="Bulldog",
+                dog_sales=35000,
+                trainer_name="Jane Smith",
+                commission=3500,
+                competition_name=None,
+                competition_amount=0,
+            ),
+            # Example 3: Training + Competition
+            Revenue(
+                date="2023-01-09",
+                revenue_type="Training & Competition",
+                dog_name="Beagle",
+                dog_sales=0,
+                trainer_name="Alice Brown",
+                commission=3000,
+                competition_name="Speed Contest",
+                competition_amount=8000,
+            ),
+            # Add your other sample entries...
+        ]
+        db.session.bulk_save_objects(sample_data)
+        db.session.commit()
+
 
 
 # Helper function to parse date from string
@@ -1275,14 +1317,11 @@ def payments():
 @app.route('/submit_payment', methods=['POST'])
 def submit_payment():
     # Retrieve the user_id from the form data
-    
-    
     try:
         # Fetch the cart items for the given user_id
         cart_items = Cart.query.filter_by(user_id=current_user.id).all()
         print(f"Cart items fetched for user_id {current_user.id}: {cart_items}")  # Debug: Log cart items
-        
-        # Check if the cart is empty
+
         if not cart_items:
             print("Cart is empty.")  # Debug
             return "No items in the cart to confirm", 400
@@ -1292,12 +1331,24 @@ def submit_payment():
             print(f"Updating item {item.id} to confirm booking.")  # Debug: Log item updates
             item.confirm_booking = True  # Set confirm_booking to True
 
+            # Transfer the cart item to the Revenue table
+            revenue_entry = Revenue(
+                date=str(datetime.now().date()), 
+                dog_name=item.dog.breed if item.dog else None,
+                dog_sales=item.price if item.dog_id else 0,
+                trainer_name=item.trainer.tname if item.trainer else None,
+                commission=item.price * 0.2 if item.trainer else 0,  # Example: 20% commission
+                competition_name=item.competition.title if item.competition else None,
+                competition_amount=item.price if item.service_id else 0,
+            )
+            db.session.add(revenue_entry)  # Add the revenue entry to the session
+
         # Commit the changes to the database
         db.session.commit()
         print("Booking confirmed and database updated.")  # Debug: Log success
         
         # Redirect to the confirmation page
-        return redirect(url_for('customer_dashboard')) # Replace with the correct route name
+        return redirect(url_for('customer_dashboard')) 
 
     except Exception as e:
         # Handle any errors and rollback if needed
@@ -1787,7 +1838,6 @@ SERVICE_PRICES = {
     'Health Care': 30
 }
 
-
 @app.route('/booking-confirmation/<int:booking_id>', methods=['GET'])
 def booking_confirmation(booking_id):
     booking = Booking.query.get_or_404(booking_id)
@@ -1801,17 +1851,6 @@ def create_order():
 
     # Convert price to subunits (paise for INR)
     amount_in_paise = int(price * 100)
-
-    # Create an order in Razorpay
-    client = razorpay.Client(auth=(app.config['RAZORPAY_KEY_ID'], app.config['RAZORPAY_KEY_SECRET']))
-    order_data = {
-        "amount": amount_in_paise,
-        "currency": "INR",
-        "receipt": f"receipt_{int(time.time())}"
-    }
-    order = client.order.create(data=order_data)
-
-    return jsonify(order)
 
 
 @app.route('/payment-success', methods=['POST'])
@@ -2189,6 +2228,109 @@ def delete_trainer(service_id, trainer_id):
         logger.error(f"Error deleting trainer: {e}")
         flash(f"Error deleting trainer: {str(e)}", "error")
         return redirect(url_for('admin_trainer', service_id=service_id))
+
+
+#team 5
+
+@app.route('/r')
+def index():
+    return render_template('index5.html')
+
+@app.route('/api/revenue')
+def get_revenue():
+    # Calculate total revenue (sum of all three types)
+    total_revenue = (
+        db.session.query(
+            func.coalesce(func.sum(Revenue.dog_sales), 0) +
+            func.coalesce(func.sum(Revenue.commission), 0) +
+            func.coalesce(func.sum(Revenue.competition_amount), 0)
+        ).scalar()
+    )
+
+    # Calculate total commission
+    total_commission = db.session.query(func.coalesce(func.sum(Revenue.commission), 0)).scalar()
+
+    # Bookings by type
+    bookings_by_type = {
+        "Dog Sales": db.session.query(func.count(Revenue.id)).filter(Revenue.dog_sales > 0).scalar(),
+        "Dog Training": db.session.query(func.count(Revenue.id)).filter(Revenue.commission > 0).scalar(),
+        "Competition": db.session.query(func.count(Revenue.id)).filter(Revenue.competition_amount > 0).scalar()
+    }
+
+    # Total bookings
+    total_bookings = sum(bookings_by_type.values())
+
+    # Revenue breakdown by type
+    revenue_breakdown = {
+        "Dog Sales": db.session.query(func.coalesce(func.sum(Revenue.dog_sales), 0)).scalar(),
+        "Dog Training": db.session.query(func.coalesce(func.sum(Revenue.commission), 0)).scalar(),
+        "Competition Earnings": db.session.query(func.coalesce(func.sum(Revenue.competition_amount), 0)).scalar()
+    }
+
+    # Monthly revenue trends
+    monthly_trends = dict(db.session.query(
+        func.substr(Revenue.date, 1, 7),  # Extract YYYY-MM from the date
+        func.coalesce(func.sum(Revenue.dog_sales), 0) +
+        func.coalesce(func.sum(Revenue.commission), 0) +
+        func.coalesce(func.sum(Revenue.competition_amount), 0)
+    ).group_by(func.substr(Revenue.date, 1, 7))
+    .order_by(func.substr(Revenue.date, 1, 7)).all())
+
+    # Yearly revenue trends
+    yearly_trends = dict(db.session.query(
+        func.substr(Revenue.date, 1, 4),  # Extract YYYY from the date
+        func.coalesce(func.sum(Revenue.dog_sales), 0) +
+        func.coalesce(func.sum(Revenue.commission), 0) +
+        func.coalesce(func.sum(Revenue.competition_amount), 0)
+    ).group_by(func.substr(Revenue.date, 1, 4))
+    .order_by(func.substr(Revenue.date, 1, 4)).all())
+
+    # Trainer performance
+    trainer_performance = dict(db.session.query(
+        Revenue.trainer_name,
+        func.coalesce(func.sum(Revenue.dog_sales), 0) +
+        func.coalesce(func.sum(Revenue.commission), 0) +
+        func.coalesce(func.sum(Revenue.competition_amount), 0)
+    ).filter(Revenue.trainer_name.isnot(None))
+    .group_by(Revenue.trainer_name)
+    .order_by(
+        (func.coalesce(func.sum(Revenue.dog_sales), 0) +
+         func.coalesce(func.sum(Revenue.commission), 0) +
+         func.coalesce(func.sum(Revenue.competition_amount), 0)).desc()
+    ).all())
+
+    # Competition revenue breakdown
+    competition_breakdown = dict(db.session.query(
+        Revenue.competition_name,
+        func.coalesce(func.sum(Revenue.competition_amount), 0)
+    ).filter(Revenue.competition_name.isnot(None))
+    .group_by(Revenue.competition_name)
+    .order_by(func.sum(Revenue.competition_amount).desc()).all())
+
+    # Dog revenue breakdown
+    dog_revenue = dict(db.session.query(
+        Revenue.dog_name,
+        func.coalesce(func.sum(Revenue.dog_sales), 0)
+    ).filter(Revenue.dog_name.isnot(None))
+    .group_by(Revenue.dog_name)
+    .order_by(func.sum(Revenue.dog_sales).desc()).all())
+
+    # Prepare the response data
+    data = {
+        'total_revenue': total_revenue,
+        'total_commission': total_commission,
+        'net_profit': total_revenue - total_commission,
+        'total_bookings': total_bookings,
+        'bookings_by_type': bookings_by_type,
+        'revenue_breakdown': revenue_breakdown,
+        'monthly_trends': monthly_trends,
+        'yearly_trends': yearly_trends,
+        'trainer_performance': trainer_performance,
+        'competition_breakdown': competition_breakdown,
+        'dog_revenue': dog_revenue
+    }
+
+    return jsonify(data)
 
 
 # Run the app
