@@ -173,7 +173,7 @@ logger = logging.getLogger('service_management')
 # User loader function for Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 # Helper function to send OTP
 def send_otp(email):
@@ -1060,7 +1060,7 @@ def add_to_cart():
 @app.route('/cart')
 @login_required
 def cart():
-    cart_items = Cart.query.filter_by(user_id=current_user.id).all()
+    cart_items = Cart.query.filter_by(user_id=current_user.id , confirm_booking=False).all()
     
     total_quantity = sum(item.quantity for item in cart_items)
     total_price = sum(item.price * item.quantity for item in cart_items)
@@ -1275,25 +1275,35 @@ def payments():
 @app.route('/submit_payment', methods=['POST'])
 def submit_payment():
     # Retrieve the user_id from the form data
-    user_id = request.form.get('user_id')
     
-    # Check if the user_id is provided and valid
-    if not user_id:
-        return "User ID is required", 400
     
-    # Fetch the cart items for the given user_id
-    cart_items = Cart.query.filter_by(user_id=user_id).all()
-    
-    # Update the confirm_booking column for all cart items of the user
-    for item in cart_items:
-        item.confirm_booking = True  # Set the confirm_booking to True
-    
-    # Commit the changes to the database
-    db.session.commit()
-    
-    # Optionally, you can return a confirmation message or redirect
-    return redirect(url_for('confirmation_page'))  # Replace with the correct page to show confirmation
+    try:
+        # Fetch the cart items for the given user_id
+        cart_items = Cart.query.filter_by(user_id=current_user.id).all()
+        print(f"Cart items fetched for user_id {current_user.id}: {cart_items}")  # Debug: Log cart items
+        
+        # Check if the cart is empty
+        if not cart_items:
+            print("Cart is empty.")  # Debug
+            return "No items in the cart to confirm", 400
+        
+        # Update the confirm_booking column for all cart items of the user
+        for item in cart_items:
+            print(f"Updating item {item.id} to confirm booking.")  # Debug: Log item updates
+            item.confirm_booking = True  # Set confirm_booking to True
 
+        # Commit the changes to the database
+        db.session.commit()
+        print("Booking confirmed and database updated.")  # Debug: Log success
+        
+        # Redirect to the confirmation page
+        return redirect(url_for('customer_dashboard')) # Replace with the correct route name
+
+    except Exception as e:
+        # Handle any errors and rollback if needed
+        db.session.rollback()
+        print(f"An error occurred: {str(e)}")  # Debug: Log error
+        return f"An error occurred: {str(e)}", 500
 
 #team 4 routes
 @app.route('/c')

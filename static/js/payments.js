@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (isValid) {
             try {
-                const response = await fetch('/complete_payment', {
+                const response = await fetch('/submit_payment', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
