@@ -283,6 +283,16 @@ class Cart(db.Model):
     service = db.relationship('Service', backref='cart_items', foreign_keys=[service_id3])  # Correct foreign key
 
 
+#team 5
+class Revenue(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.String(10), nullable=False)
+    dog_name = db.Column(db.String(50), nullable=True)
+    dog_sales = db.Column(db.Float, nullable=True, default=0)
+    trainer_name = db.Column(db.String(50), nullable=True)
+    commission = db.Column(db.Float, nullable=True, default=0)
+    competition_name = db.Column(db.String(50), nullable=True)
+    competition_amount = db.Column(db.Float, nullable=True, default=0)
 
 
 

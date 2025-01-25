@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revenue Suggestions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        .result p {
+            font-size: 18px;
+        }
+        .suggestion {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e0f7fa;
+            border-radius: 8px;
+            color: #00796b;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Revenue Prediction and Suggestions</h1>
+        <div class="result">
+            <p><strong>Predicted Revenue:</strong> <span id="predicted-revenue">Loading...</span></p>
+            <div class="suggestion">
+                <p><strong>Suggested Action:</strong> <span id="suggestion">Loading...</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch the data from the API and display it on the page
+        fetch('/api/suggestions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                "year": 2025,
+                "dog_sales": 500000,
+                "competition_amount": 300000,
+                "commission": 10000
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('predicted-revenue').textContent = data.predicted_revenue;
+            document.getElementById('suggestion').textContent = data.suggestion;
+        })
+        .catch(error => console.error('Error fetching suggestion:', error));
+    </script>
+</body>
+</html>
