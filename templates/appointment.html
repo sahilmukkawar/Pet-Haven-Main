@@ -66,6 +66,31 @@ header h1 {
 
         
         }
+        .booked-slots-container {
+        margin: 20px auto;
+        padding: 15px;
+        background: rgba(255, 0, 0, 0.1); /* Light red */
+        border-radius: 10px;
+        border: 1px solid red;
+        max-width: 400px;
+        width: 90%;
+    }
+
+    .booked-slots-container h3 {
+        text-align: center;
+        color: red;
+        margin-bottom: 10px;
+    }
+
+    .booked-slots-container ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .booked-slots-container li {
+        color: black;
+        margin: 5px 0;
+    }
     </style>
 </head>
 <body>
@@ -97,88 +122,95 @@ header h1 {
                     <option value="">Select a date </option>
                 </select>
             </div>
+            <div class="booked-slots-container">
+    <h3>Booked Slots</h3>
+    <ul id="bookedSlotsList">
+        <!-- Booked slots will be dynamically populated here -->
+    </ul>
+</div>
+
             <button type="submit" id="submitBtn" disabled>Confirm </button>
 
         </form>
     </div>
 </div>
 
-
 <script>
-    document.getElementById('date').addEventListener('change', async function() {
-    const dateInput = this.value;
-    const trainerId = {{ trainer.id }};  // Ensure that this is properly set in the template.
-    const timeSlotSelect = document.getElementById('time_slot');
+    document.getElementById('date').addEventListener('change', async function () {
+        const dateInput = this.value;
+        const trainerId = {{ trainer.id }}; // Ensure this is passed from Flask.
+        const timeSlotSelect = document.getElementById('time_slot');
+        const bookedSlotsList = document.getElementById('bookedSlotsList'); 
 
-    // Reset the time slot dropdown and show loading message
-    timeSlotSelect.innerHTML = '<option value="">Loading available slots...</option>';
-    timeSlotSelect.disabled = true;  // Disable time slot dropdown while loading
-
-    try {
-        // Fetch available slots based on selected date and trainer
-        const response = await fetch('/get-available-slots', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                date: dateInput,
-                trainer_id: trainerId
-            })
-        });
-
-        if (response.ok) {
-            const availableSlots = await response.json();
-            timeSlotSelect.innerHTML = '';  // Clear the loading message
-
-            if (availableSlots.length === 0) {
-                timeSlotSelect.innerHTML = '<option value="">No available slots</option>';
-                timeSlotSelect.disabled = true;  // Disable if no slots available
-            } else {
-                timeSlotSelect.innerHTML = '<option value="">Select a time slot...</option>';
-                availableSlots.forEach(slot => {
-                    const option = document.createElement('option');
-                    option.value = slot.id;
-                    option.textContent = slot.time;
-                    timeSlotSelect.appendChild(option);
-                });
-                timeSlotSelect.disabled = false;  // Enable dropdown after adding options
-            }
-        } else {
-            console.error('Failed to fetch available slots:', response.statusText);
-            timeSlotSelect.innerHTML = '<option value="">Error loading slots</option>';
-            timeSlotSelect.disabled = true;
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        timeSlotSelect.innerHTML = '<option value="">Error loading slots</option>';
+        // Reset the dropdown and booked slots
+        timeSlotSelect.innerHTML = '<option value="">Loading available slots...</option>';
         timeSlotSelect.disabled = true;
-        console.log('Sending data:', { date: dateInput, trainer_id: trainerId });
-        console.log('Available slots:', availableSlots);
+        bookedSlotsList.innerHTML = '<li>Loading booked slots...</li>';
 
-    }
-});
+        try {
+            const response = await fetch('/get-available-slots', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date: dateInput, trainer_id: trainerId }),
+            });
 
-    
-    document.getElementById('time_slot').addEventListener('change', function() {
+            if (response.ok) {
+                const { availableSlots, bookedSlots } = await response.json();
+
+                // Populate available slots
+                timeSlotSelect.innerHTML = '<option value="">Select a time slot...</option>';
+                if (availableSlots && availableSlots.length) {
+                    availableSlots.forEach(slot => {
+                        const option = document.createElement('option');
+                        option.value = slot.id;
+                        option.textContent = slot.time;
+                        timeSlotSelect.appendChild(option);
+                    });
+                    timeSlotSelect.disabled = false;
+                } else {
+                    timeSlotSelect.innerHTML = '<option value="">No available slots</option>';
+                }
+
+                // Populate booked slots
+                bookedSlotsList.innerHTML = '';
+                if (bookedSlots && bookedSlots.length) {
+                    bookedSlots.forEach(slot => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = slot.time;
+                        bookedSlotsList.appendChild(listItem);
+                    });
+                } else {
+                    bookedSlotsList.innerHTML = '<li>No booked slots for this day.</li>';
+                }
+            } else {
+                throw new Error('Failed to fetch slots');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            timeSlotSelect.innerHTML = '<option value="">Error loading slots</option>';
+            bookedSlotsList.innerHTML = '<li>Error loading booked slots</li>';
+        }
+    });
+
+    // Enable submit button only if a time slot is selected
+    document.getElementById('time_slot').addEventListener('change', function () {
         document.getElementById('submitBtn').disabled = !this.value;
     });
 
-
-        // Add to Cart functionality
-        document.getElementById("addToCartButton").addEventListener("click", function() {
+    // Add to Cart functionality
+    const addToCartButton = document.getElementById("addToCartButton");
+    if (addToCartButton) {
+        addToCartButton.addEventListener("click", function () {
             const selectedDate = document.getElementById("date").value;
             const selectedTimeSlot = document.getElementById("time_slot").value;
-            const service = "{{ service.name }}";  // Assuming you have a `service` object with a `name` attribute
-            const trainer = "{{ trainer.name }}";  // Assuming you have a `trainer` object with a `name` attribute
-            
-            // Check if both date and time slot are selected
+            const service = "{{ service.name }}";
+            const trainer = "{{ trainer.name }}";
+
             if (!selectedDate || !selectedTimeSlot) {
                 alert("Please select a date and time slot before adding to cart.");
                 return;
             }
 
-            // Create a cart object with selected details
             const cart = {
                 service: service,
                 trainer: trainer,
@@ -186,12 +218,10 @@ header h1 {
                 timeSlot: selectedTimeSlot
             };
 
-            // Save cart object to localStorage
             localStorage.setItem("appointmentCart", JSON.stringify(cart));
-
-            // Redirect to cart.html to view the cart details
-            window.location.href = "cart.html";  // Adjust path if needed
+            window.location.href = "cart.html";
         });
-    </script>
+    }
+</script>
 </body>
 </html>
