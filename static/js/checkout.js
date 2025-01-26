@@ -44,12 +44,42 @@ function validatePhone() {
     return true;
 }
 
+function validateHouseNo() {
+    const houseNo = document.getElementById('HouseNo');
+    const houseNoError = document.getElementById('HouseNoError');
+    const houseNoRegex = /^[a-zA-Z0-9\s,.'-]{1,100}$/; // Accepting alphanumeric characters and common symbols
+
+    if (!houseNoRegex.test(houseNo.value.trim())) {
+        houseNo.classList.add('input-error');
+        houseNoError.style.display = 'block';
+        return false;
+    }
+    houseNo.classList.remove('input-error');
+    houseNoError.style.display = 'none';
+    return true;
+}
+
+function validateLandmark() {
+    const landmark = document.getElementById('landmark');
+    const landmarkError = document.getElementById('landmarkError');
+    const landmarkRegex = /^[a-zA-Z0-9\s,.'-]{1,100}$/;  // Accepting alphanumeric and common address symbols
+
+    if (landmark.value.trim() && !landmarkRegex.test(landmark.value.trim())) {
+        landmark.classList.add('input-error');
+        landmarkError.style.display = 'block';
+        return false;
+    }
+    landmark.classList.remove('input-error');
+    landmarkError.style.display = 'none';
+    return true;
+}
+
 function validateCity() {
     const city = document.getElementById('city');
     const cityError = document.getElementById('cityError');
     const cityRegex = /^[a-zA-Z\s]{2,50}$/;
 
-    if (city.value.trim() && !cityRegex.test(city.value.trim())) {
+    if (!city.value.trim()) {
         city.classList.add('input-error');
         cityError.style.display = 'block';
         return false;
@@ -64,7 +94,7 @@ function validateState() {
     const stateError = document.getElementById('stateError');
     const stateRegex = /^[a-zA-Z\s]{2,50}$/;
 
-    if (state.value.trim() && !stateRegex.test(state.value.trim())) {
+    if (!state.value.trim()) {
         state.classList.add('input-error');
         stateError.style.display = 'block';
         return false;
@@ -77,9 +107,9 @@ function validateState() {
 function validatePincode() {
     const pincode = document.getElementById('pincode');
     const pincodeError = document.getElementById('pincodeError');
-    const pincodeRegex = /^\d{6}$/;
+    const pincodeRegex = /^\d{6}$/; // Validating 6-digit PIN code
 
-    if (pincode.value.trim() && !pincodeRegex.test(pincode.value.trim())) {
+    if (!pincode.value.trim() || !pincodeRegex.test(pincode.value.trim())) {
         pincode.classList.add('input-error');
         pincodeError.style.display = 'block';
         return false;
@@ -105,6 +135,8 @@ function validateTerms() {
 document.getElementById('fullName').addEventListener('blur', validateFullName);
 document.getElementById('email').addEventListener('blur', validateEmail);
 document.getElementById('phone').addEventListener('blur', validatePhone);
+document.getElementById('HouseNo').addEventListener('blur', validateHouseNo);
+document.getElementById('landmark').addEventListener('blur', validateLandmark);
 document.getElementById('city').addEventListener('blur', validateCity);
 document.getElementById('state').addEventListener('blur', validateState);
 document.getElementById('pincode').addEventListener('blur', validatePincode);
@@ -115,14 +147,16 @@ function validateCheckoutForm() {
     const isFullNameValid = validateFullName();
     const isEmailValid = validateEmail();
     const isPhoneValid = validatePhone();
+    const isHouseNoValid = validateHouseNo();
+    const isLandmarkValid = validateLandmark();
     const isCityValid = validateCity();
     const isStateValid = validateState();
     const isPincodeValid = validatePincode();
     const isTermsAccepted = validateTerms();
 
     return isFullNameValid && isEmailValid && isPhoneValid && 
-           isCityValid && isStateValid && isPincodeValid && 
-           isTermsAccepted;
+           isHouseNoValid && isLandmarkValid && isCityValid && 
+           isStateValid && isPincodeValid && isTermsAccepted;
 }
 
 // Pay Now button handler
@@ -130,7 +164,8 @@ document.getElementById('payNow').addEventListener('click', function(event) {
     event.preventDefault();
     
     if (validateCheckoutForm()) {
-        window.location.href = '/payments';
+        // Proceed with the payment
+        window.location.href = '/payments'; // Redirect to payment page
     }
 });
 

@@ -6,10 +6,9 @@ body {
     background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
                 url('https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg') no-repeat center center fixed;
     background-size: cover;
-
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #333;
-}
+  }
 
 html, body {
     overflow: auto;
