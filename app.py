@@ -1291,7 +1291,7 @@ def checkout():
 @app.route('/process-checkout', methods=['POST'])
 @login_required
 def process_checkout():
-    cart_items = Cart.query.filter_by(user_id=current_user.id).all()
+    cart_items = Cart.query.filter_by(user_id=current_user.id , confirm_booking=False).all()
 
     if not cart_items:
         flash('Your cart is empty. Please add items before checking out.', 
@@ -1324,7 +1324,7 @@ def submit_payment():
     # Retrieve the user_id from the form data
     try:
         # Fetch the cart items for the given user_id
-        cart_items = Cart.query.filter_by(user_id=current_user.id).all()
+        cart_items = Cart.query.filter_by(user_id=current_user.id , confirm_booking=False).all()
         print(f"Cart items fetched for user_id {current_user.id}: {cart_items}")  # Debug: Log cart items
 
         if not cart_items:
