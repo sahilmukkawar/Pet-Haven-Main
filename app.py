@@ -1260,7 +1260,7 @@ def wishlist():
 @login_required
 def checkout():
     # Fetch cart items for the current user
-    cart_items = Cart.query.filter_by(user_id=current_user.id).all()
+    cart_items = Cart.query.filter_by(user_id=current_user.id,confirm_booking=False).all()
 
     # Check if the cart is empty
     if not cart_items:
