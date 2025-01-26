@@ -1011,11 +1011,11 @@ def add_to_cart():
         # Handle dog addition
         if dog_id:
             dog = Dog.query.get_or_404(dog_id)
-            existing_item = Cart.query.filter_by(user_id=user_id, dog_id=dog_id,confirm_booking=False).first()
+            existing_item = Cart.query.filter_by(user_id=user_id, dog_id=dog_id, confirm_booking=False).first()
 
             if existing_item:
                 print("Dog already in cart")
-                return jsonify({'message': 'Dog already in cart'}), 409
+                return jsonify({'message': 'Dog is already in your cart'}), 409
 
             new_cart_item = Cart(
                 user_id=user_id,
@@ -1029,7 +1029,9 @@ def add_to_cart():
         # Handle competition/event addition
         elif service_id:
             competition = Competition.query.get_or_404(service_id)
-            existing_item = Cart.query.filter_by(user_id=user_id, service_id=service_id).first()
+            
+            # Check if the event is already in the cart for the user and is not confirmed
+            existing_item = Cart.query.filter_by(user_id=user_id, service_id=service_id, confirm_booking=False).first()
 
             if existing_item:
                 print("Event already in cart")
@@ -1058,7 +1060,8 @@ def add_to_cart():
                 trainer_id=trainer_id,
                 service_id3=service_id3,
                 booking_date=datetime.strptime(booking_date, '%Y-%m-%d').date(),
-                timeslot_id=timeslot_id
+                timeslot_id=timeslot_id,
+                confirm_booking=False
             ).first()
 
             if existing_item:
@@ -1096,7 +1099,6 @@ def add_to_cart():
     except Exception as e:
         print("Error:", str(e))  # Debugging
         return jsonify({'message': 'An error occurred', 'error': str(e)}), 500
-
 
     
 @app.route('/cart')

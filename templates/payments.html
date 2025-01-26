@@ -41,7 +41,7 @@
                 <!-- UPI Payment Option -->
                 <div class="payment-option">
                     <input type="radio" id="upi" name="paymentMethod" value="upi" required>
-                    <label for="upi">UPI</label>
+                    <label for="upi"><i class="fas fa-mobile-alt"> </i> UPI (Pay via any App)</label>
                     <div class="payment-details" id="upiDetails" style="display: none;">
                         <label for="upiId">Enter UPI ID:</label>
                         <input type="text" id="upiId" pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}" placeholder="e.g., yourname@bank">
@@ -52,7 +52,7 @@
                 <!-- Credit Card Payment Option -->
                 <div class="payment-option">
                     <input type="radio" id="creditCard" name="paymentMethod" value="creditCard">
-                    <label for="creditCard">Credit Card</label>
+                    <label for="creditCard"><i class="fas fa-credit-card"></i> Credit Card</label>
                     <div class="payment-details" id="creditCardDetails" style="display: none;">
                         <label for="CardNumber">Card Number:</label>
                         <input type="text" id="CardNumber" maxlength="19" placeholder="1234 5678 9012 3456">
@@ -79,7 +79,7 @@
                 <!-- Debit Card Payment Option -->
                 <div class="payment-option">
                     <input type="radio" id="debitCard" name="paymentMethod" value="debitCard">
-                    <label for="debitCard">Debit Card</label>
+                    <label for="debitCard"> <i class="fas fa-credit-card"> </i> Debit Card</label>
                     <div class="payment-details" id="debitCardDetails" style="display: none;">
                         <label for="debitCardNumber">Card Number:</label>
                         <input type="text" id="debitCardNumber" maxlength="19" placeholder="1234 5678 9012 3456">
@@ -103,6 +103,15 @@
                     </div>
                 </div>
 
+                <div class="payment-option">
+                    <input type="radio" id="cod" name="paymentMethod" value="cod">
+                    <label for="cod"><i class="fas fa-truck"></i> Cash on Delivery</label>
+                    <div class="payment-details" id="codDetails" style="display: none;">
+                        <p>You will pay when the product is delivered to your address.</p>
+                    </div>
+                </div>
+
+                  
                 <!-- Hidden user_id field -->
                 <input type="hidden" name="user_id" value="{{ user_id }}">
 

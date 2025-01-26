@@ -426,10 +426,10 @@
         </div>
         <ul>
             <li><a href="/add_dog">Add Dog</a></li>
-            <li><a href="#">Add Service</a></li>
-            <li><a href="#">Add Trainer</a></li>
+            <li><a href="/add_services">Add Service</a></li>
+            <!-- <li><a href="#">Add Trainer</a></li> -->
             <li><a href="/admin4/add_competition">Add Competitions</a></li>
-            <li><a href="#">Track Revenue</a></li>
+            <li><a href="/r">Track Revenue</a></li>
         </ul>
         <span class="notification-icon" id="notificationIcon">
             🔔
@@ -504,7 +504,7 @@
                     <div class="feature-content">
                         <h3>Book Grooming Services</h3>
                         <p>Schedule a grooming session for your beloved pet.</p>
-                        <a href="#" class="btn btn-primary">Book Now</a>
+                        <a href="/admin_services" class="btn btn-primary">Book Now</a>
                     </div>
                 </div>
                 <div class="feature-card">
@@ -569,7 +569,7 @@
         const notificationList = document.getElementById('notificationList');
         const listItem = document.createElement('li');
         listItem.className = 'notification-item';
-        listItem.innerHTML = `${data.message} <small>(${new Date(data.created_at).toLocaleString()})</small>`;
+        listItem.innerHTML = ${data.message} <small>(${new Date(data.created_at).toLocaleString()})</small>;
         notificationList.insertBefore(listItem, notificationList.firstChild);  // Add new notifications at the top
         // Update the unread count
         const notificationCount = document.querySelector('.notification-count');
@@ -583,7 +583,7 @@
         // Get the current list of notifications
         const notificationList = document.getElementById('notificationList');
         // Fetch the next three notifications from the server
-        fetch(`/dashboard/all_notifications?offset=${offset}`)  // Pass the current offset
+        fetch(/dashboard/all_notifications?offset=${offset})  // Pass the current offset
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -595,7 +595,7 @@
                 data.notifications.forEach(notification => {
                     const listItem = document.createElement('li');
                     listItem.className = 'notification-item';
-                    listItem.innerHTML = `${notification.message} <small>(${new Date(notification.created_at).toLocaleString()})</small>`;
+                    listItem.innerHTML = ${notification.message} <small>(${new Date(notification.created_at).toLocaleString()})</small>;
                     notificationList.appendChild(listItem);
                 });
                 // Update the offset
