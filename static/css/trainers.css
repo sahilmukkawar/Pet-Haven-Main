@@ -1,17 +1,176 @@
-/* General body styling */
+/* General Styles */
 body {
-  font-family: Arial, sans-serif;
+  font-family: "Poppins", serif;
+  font-weight: 100;
   margin: 0;
   padding: 0;
-  background-image: url("../images/dogbg.jpg");
-  background-size: cover;
-  background-attachment: fixed;
-  background-position: center;
-  background-repeat: no-repeat;
-  color: #333;
-  position: relative; /* Ensure the overlay works */
-  min-height: 100vh; /* Ensure full height for scrolling pages */
+  /* background: linear-gradient(rgba(255, 255, 255, 0.5), rgba(188, 188, 188, 0.5)), url(./d1.jpg) no-repeat center center/cover; */
+  background-color: #f9f9f9;
 }
+
+
+/* nav bar  */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #28a745;
+  padding: 1rem 2rem;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position:relative; 
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  z-index: 1000; 
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo img {
+  height: 60px;
+  width: 80px;
+  object-fit: contain;
+  background-color: transparent;
+}
+
+.logo span {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+  font-family: 'Pacifico', cursive;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo span::after {
+  content: '\f1b0';
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: black;
+}
+
+.nav-links {
+  list-style: none;
+   display: flex;
+   justify-content: space-around; 
+   align-items: center;
+   gap: 0; 
+   margin: 0;
+   padding: 0;
+  }
+
+
+.nav-links li a {
+  text-decoration: none;
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.nav-links li a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 1rem; /* Reduced padding for mobile */
+  }
+
+}
+
+
+.navbar .dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+
+.navbar .dropdown .dropdown-toggle {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; 
+  border-radius: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.navbar .dropdown .dropdown-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+
+.navbar .dropdown .dropdown-menu {
+  display: none; 
+  position: absolute;
+  top: calc(100% + 5px); 
+  right: 0; 
+  background-color: #333;
+  border-radius: 8px;
+  min-width: 200px;
+  padding: 0.5rem 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+
+.navbar .dropdown .dropdown-menu li {
+  list-style: none;
+}
+
+.navbar .dropdown .dropdown-menu li a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; 
+  padding: 0.5rem 1rem;
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.navbar .dropdown .dropdown-menu li a:hover {
+  background-color: #575757;
+}
+
+
+.navbar .dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.navbar .dropdown .dropdown-toggle i {
+  font-size: 0.9rem;
+}
+
+
+@media (max-width: 768px) {
+  .navbar .dropdown .dropdown-menu {
+    position: static;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .navbar .dropdown .dropdown-menu li a {
+    padding: 0.75rem 1rem;
+  }
+}
+
 
 /* Overlay for background */
 body::before {
@@ -66,33 +225,53 @@ header h1 {
   background: #45a049;
   color: white;
 }
-/* Services list container */
-ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 20px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+.trainer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
-}
-
-/* Service card styling */
-li {
-  background: #fff; /* White card */
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  width: 300px;
-  text-align: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+
 }
 
-/* Hover effects for cards */
-li:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+.trainer-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.trainer-card img {
+  border-radius: 50%;
+  margin-bottom: 15px;
+}
+
+.trainer-card h3 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.trainer-card p {
+  font-size: 1em;
+  margin-bottom: 8px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s;
+}
+
+.button:hover {
+  background-color: #45a049;
 }
 
 /* Trainer image */
@@ -104,16 +283,6 @@ img {
   margin-bottom: 10px;
 }
 
-/* Trainer name styling */
-h3 {
-  margin: 10px 0;
-  color: #333;
-}
-
-/* Trainer details styling */
-p {
-  margin: 5px 0;
-}
 
 /* Button styling */
 .button {
