@@ -4,123 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Our Services</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/services.css') }}"
-    />
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f4;
-      }
-      header {
-        text-align: center;
-        margin-top: 20px;
-      }
-      .back-button {
-        padding: 10px 20px;
-        background-color: #fcfdfd;
-        color: rgb(0, 0, 0);
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 10px;
-        text-decoration: none;
-      }
-      .back-button:hover {
-        background-color: #ffffff;
-      }
-      .cards {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-        padding: 20px;
-      }
-      .card {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        width: 300px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        text-align: center;
-      }
-      .card h3 {
-        margin-bottom: 10px;
-      }
-      .card p {
-        margin: 5px 0;
-      }
-      .card a {
-        background-color: #28a745;
-        color: white;
-        padding: 10px 20px;
-        margin-top: 10px;
-        border-radius: 5px;
-        text-decoration: none;
-        display: inline-block;
-      }
-      .card a:hover {
-        background-color: #218838;
-      }
-      .delete-button {
-        background-color: #e03333;
-        color: white;
-        padding: 10px 20px;
-        margin-top: 10px;
-        border-radius: 5px;
-        text-decoration: none;
-        display: inline-block;
-      }
-      .delete-button:hover {
-        background-color: #e03333;
-      }
-      .edit-button {
-         background-color: #ffc107; /* Yellow */
-         color: white;
-         padding: 10px 20px;
-         margin-top: 10px;
-         border-radius: 5px;
-         text-decoration: none;
-         display: inline-block;
-         width: 30%;
-         text-align: center;
-      }
-
-      .edit-button:hover {
-        background-color: #e0a800; /* Darker yellow */
-      }
-
-      .add-service-btn {
-        text-align: center;
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100%;
-      }
-      .add-service-btn a {
-        background-color: #ff8c00;
-        color: white;
-        padding: 15px 30px;
-        font-size: 1.2em;
-        border-radius: 5px;
-        text-decoration: none;
-      }
-      .add-service-btn a:hover {
-        background-color: #e07b00;
-      }
-    </style>
+    <link rel="stylesheet" href="../static/css/services3.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap">
   </head>
   <body>
+    <nav class="navbar">
+      <div class="logo">
+         <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Pet Heaven Logo">
+   <span>Pet Heaven</span>
+     </div>
+     <ul class="nav-links">
+       <li><a href="/admin_dashboard" class="nav-link" id="home-link"><i class="fas fa-home"></i> Home</a></li>
+       <li><a href="{{ url_for('add_services') }}" class="nav-link"><i class="fas fa-plus"></i> Add Service</a></a></li>
+         </ul>
+       </li>           
+     </ul>
+ </nav>
 
     <header>
       <h1>Our Services</h1>
-      <button class="back-button" onclick="window.history.back();">
-        &#8592; Back
-      </button>
     </header>
 
     <div class="cards">
@@ -138,21 +42,19 @@
       </p>
         <p><strong>Cost: ₹</strong> {{ service.cost }}</p>
         <p><strong>Description:</strong> {{ service.description }}</p>
-        <a href="{{ url_for('admin_trainer', service_id=service.id) }}">Check Out</a>
+      <div class="button-container">
+        <a href="{{ url_for('admin_trainer', service_id=service.id) }}">View Trainers</a>
         <!-- Edit button -->
-        <a href="{{ url_for('edit_service', service_id=service.id) }}" class="edit-button">Edit Service</a>
+        <a href="{{ url_for('edit_service', service_id=service.id) }}" class="edit-button"> <i class="fa fa-edit"></i> Edit </a>
         <!-- Delete button -->
         <form action="{{ url_for('delete_service', service_id=service.id) }}" method="POST" style="display: inline;">
-          <button type="submit" class="delete-button">Delete Service</button>
+          <button type="submit" class="delete-button"><i class="fa fa-trash"></i> Remove</button>
         </form>
       </div>
-      {% endfor %}
-    </div>
+      </div>
 
-    <!-- Add New Service Button -->
-    <div class="add-service-btn">
-      <a href="{{ url_for('add_services') }}">+ Add Service</a>
-    </div>
+      {% endfor %}
+    </div>  
 
   </body>
 </html>

@@ -5,108 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book an Appointment</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/appointment.css') }}">
-    <style>
-
-    /* Header Styles */
-header {
-  background-color: rgba(76, 175, 80, 0.8); /* Transparent green */
-  color: white;
-  text-align: center;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 45px;
-  position: relative;
-  z-index: 1;
-  animation: slideIn 1s ease-out;
-}
-
-header h1 {
-  margin-left: 150px;
-  font-size: 2.5em;
-  letter-spacing: 2px;
-  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
-  transform: translateY(-30px);
-  animation: fadeIn 1.5s ease-out forwards;
-}
-
-/* Back Button Styles */
-.back-button {
-  background: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  color: #45a049;
-  cursor: pointer;
-  width: 120px;
-  height: 35px;
-  margin-right: 50px;
-  transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
-  transform: translateY(-30px);
-  animation: fadeIn 2s ease-out forwards;
-}
-
-.back-button:hover {
-  background: #45a049;
-  color: white;
-}
-
-        .booking-details{
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            background: rgba(255,255,255);
-            border-radius: 10px;
-            margin: 20px auto;
-            color:black;
-            border: 1.5px solid black;
-            width: 90%;
-            max-width: 400px;
-
-        
-        }
-        .booked-slots-container {
-        margin: 20px auto;
-        padding: 15px;
-        background: rgba(255, 0, 0, 0.1); /* Light red */
-        border-radius: 10px;
-        border: 1px solid red;
-        max-width: 400px;
-        width: 90%;
-    }
-
-    .booked-slots-container h3 {
-        text-align: center;
-        color: red;
-        margin-bottom: 10px;
-    }
-
-    .booked-slots-container ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    .booked-slots-container li {
-        color: black;
-        margin: 5px 0;
-    }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap">
 </head>
 <body>
+    <nav class="navbar">
+        <div class="logo">
+           <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Pet Heaven Logo">
+     <span>Pet Heaven</span>
+       </div>
+       <ul class="nav-links">
+         <li><a href="/customer_dashboard" class="nav-link" id="home-link"><i class="fas fa-home"></i> Home</a></li>
+         <li class="dropdown">
+           <a href="#" class="dropdown-toggle"><i class="fa-solid fa-user"></i> Account <span>&#9662;</span></a>
+           <ul class="dropdown-menu">
+             <li><a href="/cart"><i class="fas fa-shopping-cart"></i> Cart</a></li>
+             <li><a href="/services" class="nav-link" id="services-link"><i class="fa-solid fa-spa"></i> Services</a></li>
+             <li><a href="{{ url_for('trainers_by_service', service_id=service.id) }}" class="nav-link" id="tariners-link"><i class="fas fa-running"></i> Trainers</a></li>
+           </ul>
+         </li>           
+       </ul>
+    </nav>
     <div class="appointment-container">
-        <div class="header">
-            <header>
-            <h1>Book An Appointment</h1>
-            <button class="back-button" onclick="window.history.back();">
-                &#8592; Back
-              </button>
-            </header>
-        </div>
-        
         <div class="booking-details">
-        
-        
+         <h1>Book An Appointment</h1>
         <form action="{{ url_for('confirm_appointment', service_id=service.id) }}" method="POST" id="bookingForm">
             <input type="hidden" name="trainer_id" value="{{ trainer.id }}">
             <input type="hidden" name="service_id" value="{{ service.id }}">
@@ -138,7 +61,7 @@ header h1 {
 <script>
     document.getElementById('date').addEventListener('change', async function () {
         const dateInput = this.value;
-        const trainerId = {{ trainer.id }}; // Ensure this is passed from Flask.
+        const trainerId =" {{ trainer.id }}"; // Ensure this is passed from Flask.
         const timeSlotSelect = document.getElementById('time_slot');
         const bookedSlotsList = document.getElementById('bookedSlotsList'); 
 

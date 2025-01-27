@@ -1594,39 +1594,6 @@ def myevents4():
         flash("Error loading registration", "danger")
         return redirect(url_for('home4'))
 
-
-@app.route('/details4')
-def details4():
-    return render_template('details4.html')
-@app.route('/validate_details', methods=['POST'])
-def validate_details():
-    # Retrieve form data
-    name = request.form.get('name')
-    email = request.form.get('email')
-    phone = request.form.get('phone')
-    address = request.form.get('address')
-
-    # Validation logic
-    if not name or not email or not phone or not address:
-        flash("All fields are required!")
-        return redirect('/details4')
-
-    if not re.match(r"^[6-9]\d{9}$", phone):
-        flash("Phone number must be 10 digits and start with 6-9!")
-        return redirect('/details4')
-
-    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-        flash("Invalid email format!")
-        return redirect('/details4')
-        # Store details in session
-    session['user_details'] = {
-        'name': name,
-        'email': email,
-        'phone': phone,
-        'address': address
-    }
-    # If all validations pass, redirect to the payment page
-    return redirect('/payments4')
 @app.route('/schedule4')
 def schedule4():
     competitions = Competition.query.order_by(Competition.date).all()
@@ -1687,67 +1654,14 @@ def complete_payment():
         flash("Error completing registration", "danger")
         return redirect(url_for('payments4'))
     
-@app.route('/register4', methods=['GET', 'POST'])
-def register4():
-    service_id = request.args.get('service_id')
-    service = Competition.query.get(service_id)
-
-    if not service:
-        flash("Service not found!", "danger")
-        return redirect(url_for('home4'))
-
-    if request.method == 'POST':
-        try:
-            name = request.form.get('name')
-            breed = request.form.get('breed')
-            age = request.form.get('age')
-            event = service.title
-
-            if not all([name, breed, age]):
-                flash("All fields are required!", "danger")
-                return render_template('register4.html', service=service)
-
-            try:
-                age = int(age)
-                if age < 0:
-                    raise ValueError("Age must be positive")
-            except ValueError as e:
-                flash(f"Invalid age: {str(e)}", "danger")
-                return render_template('register4.html', service=service)
-
-            # Store registration data in session instead of database
-            session['registration_data'] = {
-                'name': name,
-                'breed': breed,
-                'age': age,
-                'event': event
-            }
-            
-            return redirect(url_for('details4'))
-
-        except Exception as e:
-            logger.error(f"Error during registration process: {e}")
-            flash(f"Error: {str(e)}", "danger")
-            return render_template('register4.html', service=service)
-
-    return render_template('register4.html', service=service)
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #team 3#
 
 # Routes for user 
-@app.route('/a')
-def home_team3():
-    return render_template('index3.html')
-
 @app.route('/services')
 def list_services():
     services = Service.query.all()
     return render_template('services3.html', services=services)
-
-@app.route('/trainers')
-def trainers():
-    trainers = Trainer.query.all()  # Fetch all trainers from the database
-    return render_template('trainers2.html', trainers=trainers)
 
 @app.route('/services/<int:service_id>')
 def trainers_by_service(service_id):
@@ -1881,49 +1795,49 @@ def payment_success():
 #-------------------------------------
 #-------------------------------------------
 # Routes for Admin
-#route of admin
-@app.route('/admin3')
-def admin3():
-    try:
-        pending_requests = TrainerEditRequest.query.filter_by(status='pending').all()
-        services = Service.query.order_by(Service.created_at.desc()).all()
-        return render_template('admin3.html', services=services, pending_requests=pending_requests)
-    except Exception as e:
-        logger.error(f"Error fetching data for admin panel: {str(e)}")
-        flash('Error loading admin panel', 'error')
-        return render_template('admin3.html', services=[], pending_requests=[])
+# #route of admin
+# @app.route('/admin3')
+# def admin3():
+#     try:
+#         pending_requests = TrainerEditRequest.query.filter_by(status='pending').all()
+#         services = Service.query.order_by(Service.created_at.desc()).all()
+#         return render_template('admin3.html', services=services, pending_requests=pending_requests)
+#     except Exception as e:
+#         logger.error(f"Error fetching data for admin panel: {str(e)}")
+#         flash('Error loading admin panel', 'error')
+#         return render_template('admin3.html', services=[], pending_requests=[])
 
-@app.route('/admin3/approve/<int:request_id>', methods=['POST'])
-def approve_request(request_id):
-    edit_request = TrainerEditRequest.query.get_or_404(request_id)
-    trainer = Trainer.query.get_or_404(edit_request.trainer_id)
+# @app.route('/approve/<int:request_id>', methods=['POST'])
+# def approve_request(request_id):
+#     edit_request = TrainerEditRequest.query.get_or_404(request_id)
+#     trainer = Trainer.query.get_or_404(edit_request.trainer_id)
 
-    # Apply the approved changes to the Trainer
-    trainer.tname = edit_request.tname
-    trainer.experience = edit_request.experience
-    trainer.rating = edit_request.rating
-    trainer.description = edit_request.description
-    trainer.profile_pic = edit_request.profile_pic
-    trainer.status = 'approved'
+#     # Apply the approved changes to the Trainer
+#     trainer.tname = edit_request.tname
+#     trainer.experience = edit_request.experience
+#     trainer.rating = edit_request.rating
+#     trainer.description = edit_request.description
+#     trainer.profile_pic = edit_request.profile_pic
+#     trainer.status = 'approved'
 
-    # Delete the request after approval
-    db.session.delete(edit_request)
-    db.session.commit()
+#     # Delete the request after approval
+#     db.session.delete(edit_request)
+#     db.session.commit()
 
-    flash("Trainer profile updated successfully!", "success")
-    return redirect(url_for('admin3'))
+#     flash("Trainer profile updated successfully!", "success")
+#     return redirect(url_for('admin3'))
 
-@app.route('/admin3/reject/<int:request_id>', methods=['POST'])
-def reject_request(request_id):
-    edit_request = TrainerEditRequest.query.get_or_404(request_id)
+# @app.route('/admin3/reject/<int:request_id>', methods=['POST'])
+# def reject_request(request_id):
+#     edit_request = TrainerEditRequest.query.get_or_404(request_id)
 
-    # Mark the request as rejected and delete it
-    edit_request.status = 'rejected'
-    db.session.delete(edit_request)
-    db.session.commit()
+#     # Mark the request as rejected and delete it
+#     edit_request.status = 'rejected'
+#     db.session.delete(edit_request)
+#     db.session.commit()
 
-    flash("Trainer edit request rejected.", "error")
-    return redirect(url_for('admin3'))
+#     flash("Trainer edit request rejected.", "error")
+#     return redirect(url_for('admin3'))
 
 @app.route('/add_services', methods=['GET', 'POST'])
 def add_services():

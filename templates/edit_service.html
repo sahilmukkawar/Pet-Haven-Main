@@ -4,183 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Edit Service</title>
-    <style>
-      /* General body and page setup */
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background: url('/static/images/dogbg.jpg') no-repeat center center fixed;
-        background-size: cover;
-        color: #fff;
-        text-align: center;
-        animation: fadeIn 2s ease-out;
-      }
-
-      /* Keyframe for background animation */
-      @keyframes fadeIn {
-        0% {
-          opacity: 0;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
-
-      .container {
-        max-width: 600px;
-        margin: 30px auto;
-        background:transparent;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0px 10px 40px rgba(246, 244, 244, 0.2);
-        animation: slideIn 1s ease-out;
-        position: relative;
-        overflow: hidden;
-      }
-
-      /* Animation for the form container */
-      @keyframes slideIn {
-        0% {
-          transform: translateY(-30px);
-          opacity: 0;
-        }
-        100% {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-
-      h1 {
-        font-size: 2.5em;
-        margin-bottom: 20px;
-        color: #0f0e0f;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        animation: fadeInText 1s ease-out;
-      }
-
-      /* Keyframe for header fade-in effect */
-      @keyframes fadeInText {
-        0% {
-          opacity: 0;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
-
-      form {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        animation: formFadeIn 1.5s ease-out;
-      }
-
-      /* Animation for form elements fade-in */
-      @keyframes formFadeIn {
-        0% {
-          opacity: 0;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
-
-      label {
-        font-size: 1.3em;
-        text-align: left;
-        margin-bottom: 10px;
-        font-weight: bold;
-        color: #181716;
-        transition: transform 0.3s ease;
-      }
-
-      label:hover {
-        transform: translateX(10px);
-      }
-
-      input[type="text"],
-      input[type="number"],
-      textarea {
-        padding: 12px;
-        font-size: 1.1em;
-        border: 2px solid #e5dede;
-        border-radius: 10px;
-        background-color: #f6ecec;
-        color: #333;
-        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-      }
-
-      input[type="text"]:focus,
-      input[type="number"]:focus,
-      textarea:focus {
-        transform: scale(1.05);
-        box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
-      }
-
-      textarea {
-        resize: vertical;
-        min-height: 120px;
-      }
-
-      button {
-        background-color: #3f3c37;
-        color: #e5dbdb;
-        padding: 12px 20px;
-        font-size: 1.2em;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-        transition: transform 0.3s ease, background-color 0.3s ease;
-      }
-
-      button:hover {
-        background-color: #302d2a;
-        transform: translateY(-5px);
-      }
-
-      a {
-        color: #383532;
-        font-size: 1.1em;
-        margin-top: 20px;
-        text-decoration: none;
-        transition: color 0.3s ease;
-      }
-
-      a:hover {
-        color: #252322;
-        text-decoration: underline;
-      }
-
-      /* Pet animation */
-      .pet {
-        position: absolute;
-        bottom: -50px;
-        right: 50px;
-        width: 100px;
-        animation: petBounce 3s infinite;
-      }
-
-      /* Keyframe for pet animation */
-      @keyframes petBounce {
-        0%, 100% {
-          bottom: -50px;
-        }
-        50% {
-          bottom: 20px;
-        }
-      }
-
-      /* Hover effect for form elements */
-      input[type="text"]:hover,
-      input[type="number"]:hover,
-      textarea:hover {
-        background-color: #eae0e0;
-      }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit.css') }}">
   </head>
   <body>
     <div class="container">
@@ -239,56 +63,63 @@
   
         <button type="submit">Update Service</button>
       </form>
-  
-      <a href="{{ url_for('admin_services') }}">Back to Services</a>
-      <a href="{{ url_for('edit_service', service_id=service.id) }}">Edit Service</a>
+    
     </div>
   
-    <!-- Pet animation -->
-    <img src="/static/images/puppy.jpg" class="pet" alt="Pet" />
-  
+
     <script>
-      document
-        .getElementById("editServiceForm")
-        .addEventListener("submit", function (event) {
-          const serviceName = document
-            .getElementById("service_name")
-            .value.trim();
-          const duration = parseInt(document.getElementById("duration").value, 10);
-          const cost = parseFloat(document.getElementById("cost").value);
-          const description = document
-            .getElementById("description")
-            .value.trim();
-  
-          // Validation checks
-          if (!serviceName.match(/^[A-Za-z\s]{3,50}$/)) {
-            alert(
-              "Service name should only contain letters and spaces, and be 3-50 characters long."
-            );
-            event.preventDefault();
-            return;
-          }
-  
-          if (isNaN(duration) || duration < 1 || duration > 480) {
-            alert("Duration must be a number between 1 and 480 minutes.");
-            event.preventDefault();
-            return;
-          }
-  
-          if (isNaN(cost) || cost < 0.01 || cost > 10000) {
-            alert("Cost must be between 0.01 and 10,000.");
-            event.preventDefault();
-            return;
-          }
-  
-          if (description.length < 10 || description.length > 200) {
-            alert("Description must be between 10 and 200 characters.");
-            event.preventDefault();
-            return;
-          }
-  
-          alert("Service updated successfully!");
-        });
+  document
+  .getElementById("editServiceForm")
+  .addEventListener("submit", function (event) {
+    const serviceName = document
+      .getElementById("service_name")
+      .value.trim();
+    const duration = parseInt(document.getElementById("duration").value, 10);
+    const cost = parseFloat(document.getElementById("cost").value);
+    const description = document
+      .getElementById("description")
+      .value.trim();
+
+    // Validation checks
+    if (!serviceName.match(/^[A-Za-z\s]{3,50}$/)) {
+      showAlert("Service name should only contain letters and spaces, and be 3-50 characters long.");
+      event.preventDefault();
+      return;
+    }
+
+    if (isNaN(duration) || duration < 1 || duration > 480) {
+      showAlert("Duration must be a number between 1 and 480 minutes.");
+      event.preventDefault();
+      return;
+    }
+
+    if (isNaN(cost) || cost < 0.01 || cost > 10000) {
+      showAlert("Cost must be between 0.01 and 10,000.");
+      event.preventDefault();
+      return;
+    }
+
+    if (description.length < 10 || description.length > 200) {
+      showAlert("Description must be between 10 and 200 characters.");
+      event.preventDefault();
+      return;
+    }
+
+    showAlert("Service updated successfully!");
+  });
+
+function showAlert(message) {
+  const alertBox = document.getElementById("customAlert");
+  const alertMessage = document.getElementById("alertMessage");
+  alertMessage.textContent = message;
+  alertBox.style.display = "block"; // Show the custom alert
+}
+
+function closeAlert() {
+  const alertBox = document.getElementById("customAlert");
+  alertBox.style.display = "none"; // Hide the custom alert
+}
+
     </script>
   </body>
   
