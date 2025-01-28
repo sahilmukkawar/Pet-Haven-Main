@@ -783,10 +783,13 @@ def update_user(user_id):
     # **Only update fields that have changed**
     if new_role and new_role != user.role:
         user.role = new_role
+        updated_fields.append('Role')
     if new_name and new_name != user.name:
         user.name = new_name
+        updated_fields.append('Name')
     if new_mobile_number and new_mobile_number != user.mobile_number:
         user.mobile_number = new_mobile_number
+        updated_fields.append('Mobile Number')
     # Commit changes to the database if any updates occurred
     if updated_fields:
         db.session.commit()
@@ -808,7 +811,7 @@ def update_user(user_id):
         flash('No changes detected.', 'warning')
 
     flash('User details updated successfully!', 'success')
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('admin_dashboard'))
 
 @app.route('/mark_notifications_read', methods=['POST'])
 @login_required
