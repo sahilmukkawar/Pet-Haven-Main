@@ -783,13 +783,10 @@ def update_user(user_id):
     # **Only update fields that have changed**
     if new_role and new_role != user.role:
         user.role = new_role
-        updated_fields.append('Role')
     if new_name and new_name != user.name:
         user.name = new_name
-        updated_fields.append('Name')
     if new_mobile_number and new_mobile_number != user.mobile_number:
         user.mobile_number = new_mobile_number
-        updated_fields.append('Mobile Number')
     # Commit changes to the database if any updates occurred
     if updated_fields:
         db.session.commit()
@@ -811,7 +808,7 @@ def update_user(user_id):
         flash('No changes detected.', 'warning')
 
     flash('User details updated successfully!', 'success')
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('dashboard'))
 
 @app.route('/mark_notifications_read', methods=['POST'])
 @login_required
@@ -1318,11 +1315,11 @@ def process_checkout():
 def payments():
     return render_template('payments.html')
 
-@app.route('/thank-you', methods=['POST'])
+@app.route('/thank-you', methods=['POST', 'GET'])
 def thank_you():
-    payment_method = request.form.get('payment_method')
+    # payment_method = request.form.get('payment_method')
     # Optionally process payment details here
-    return render_template('thankyou.html', payment_method=payment_method)
+    return render_template('thankyou.html')
 
 @app.route('/submit_payment', methods=['POST'])
 def submit_payment():
@@ -1358,7 +1355,10 @@ def submit_payment():
         print("Booking confirmed and database updated.")  # Debug: Log success
         
         # Redirect to the confirmation page
-        return redirect(url_for('customer_dashboard')) 
+        return jsonify({
+            "success": True, 
+            "redirect": url_for('thank_you')
+        }), 200 
 
     except Exception as e:
         # Handle any errors and rollback if needed
@@ -1666,11 +1666,22 @@ def list_services():
     services = Service.query.all()
     return render_template('services3.html', services=services)
 
+@app.route('/tservices')
+def tlist_services():
+    services = Service.query.all()
+    return render_template('tservices.html', services=services)
+
 @app.route('/services/<int:service_id>')
 def trainers_by_service(service_id):
     service = Service.query.get_or_404(service_id)
     trainers = Trainer.query.filter_by(service_id=service_id).all()
     return render_template('trainers.html', service=service, trainers=trainers)
+
+@app.route('/tservices/<int:service_id>')
+def trainers_by_service2(service_id):
+    service = Service.query.get_or_404(service_id)
+    trainers = Trainer.query.filter_by(service_id=service_id).all()
+    return render_template('ttrainers.html', service=service, trainers=trainers)
 
 @app.route('/services/<int:service_id>/appointments', methods=['GET'])
 def direct_appointment(service_id):
@@ -1685,6 +1696,27 @@ def direct_appointment(service_id):
     max_date = today.replace(year=today.year + 1)  # Allow bookings up to 1 year in advance
     return render_template(
         'appointment.html', 
+        trainer=trainer, 
+        service=service, 
+        slots=slots, 
+        service_id=service_id, 
+        today=today, 
+        max_date=max_date
+    )
+
+@app.route('/tservices/<int:service_id>/appointments', methods=['GET'])
+def tdirect_appointment(service_id):
+    trainer_id = request.args.get('trainer_id', type=int)
+    if trainer_id is None:
+        return "Trainer ID is required", 400  # Return an error if trainer_id is not provided
+
+    trainer = Trainer.query.get_or_404(trainer_id)
+    service = Service.query.get_or_404(service_id)
+    slots = TimeSlot.query.all()
+    today = datetime.now().date()
+    max_date = today.replace(year=today.year + 1)  # Allow bookings up to 1 year in advance
+    return render_template(
+        'tappointment.html', 
         trainer=trainer, 
         service=service, 
         slots=slots, 
@@ -2081,59 +2113,73 @@ def add_trainer(service_id):
         flash("An unexpected error occurred", "error")
         return redirect(url_for('admin_trainer', service_id=service_id))
 
-@app.route('/admin_services/<int:service_id>/trainer/<int:trainer_id>/edit', methods=['GET', 'POST'])
-def edit_trainer(service_id, trainer_id):
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/trainers/<int:trainer_id>/edit', methods=['GET', 'POST'])
+def edit_trainer(trainer_id):
     try:
+        # Fetch the trainer by ID
         trainer = Trainer.query.get_or_404(trainer_id)
-        service = Service.query.get_or_404(service_id)
+        service_id = trainer.service_id
 
         if request.method == 'POST':
-            trainer_name = request.form.get('trainer-name')
+            trainer_name = request.form.get('name')
             experience = request.form.get('experience')
             rating = request.form.get('rating')
             description = request.form.get('description')
-            profile_pic = request.files.get('profile-pic')
+            file = request.files.get('profile_pic')
 
             # Validate required fields
             if not all([trainer_name, experience, rating, description]):
-                flash("All fields are required!", "error")
-                return render_template('edit_trainer.html', trainer=trainer, service=service)
+                flash("All fields except profile picture are required!", "error")
+                return render_template('edit_trainer.html', trainer=trainer)
 
             # Validate trainer name
             if not trainer_name.replace(' ', '').isalpha() or not (3 <= len(trainer_name) <= 50):
                 flash("Trainer name must be 3-50 characters and contain only letters and spaces", "error")
-                return render_template('edit_trainer.html', trainer=trainer, service=service)
+                return render_template('edit_trainer.html', trainer=trainer)
 
-            # Handle profile picture upload
-            profile_pic_path = trainer.profile_pic
-            if profile_pic:
-                filename = secure_filename(profile_pic.filename)
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                unique_filename = f"{timestamp}_{filename}"
-                profile_pic.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
-                profile_pic_path = f"../static/images/{unique_filename}"
+            # Handle file upload if present
+            if file and allowed_file(file.filename):
+                # Secure the filename and save the file
+                filename = secure_filename(file.filename)
+                
+                # Define the directory where images will be stored (static/images/)
+                file_path = os.path.join('static', 'images', filename)
+                
+                # Save the file to the static/images/ directory
+                file.save(file_path)
+                
+                # Hardcode the path to be stored in the database
+                trainer.profile_pic = f'images/{filename}'  # Save relative path
 
-            # Create a new edit request
-            edit_request = TrainerEditRequest(
-                trainer_id=trainer.id,
-                tname=trainer_name,
-                experience=f"{experience} years",
-                rating=float(rating),
-                description=description,
-                profile_pic=profile_pic_path,
-            )
-            db.session.add(edit_request)
-            db.session.commit()
+            # Update other trainer details
+            trainer.tname = trainer_name
+            trainer.experience = experience
+            trainer.rating = float(rating)
+            trainer.description = description
 
-            flash("Your changes have been submitted for admin approval.", "success")
-            return redirect(url_for('admin_trainer', service_id=service_id))
+            try:
+                # Save changes to the database
+                db.session.commit()
+                flash("Trainer details updated successfully!", "success")
+                return redirect(url_for('admin_trainer', service_id=service_id))
 
-        return render_template('edit_trainer.html', trainer=trainer, service=service)
+            except Exception as e:
+                db.session.rollback()
+                logger.error(f"Database error while updating trainer: {e}")
+                flash("Error updating trainer details", "error")
+                return render_template('edit_trainer.html', trainer=trainer)
+
+        # GET request: Render the edit form with the trainer's details
+        return render_template('edit_trainer.html', trainer=trainer)
 
     except Exception as e:
         logger.error(f"Error in edit_trainer route: {e}")
         flash("An unexpected error occurred", "error")
         return redirect(url_for('admin_trainer', service_id=service_id))
+
 
 @app.route('/admin_services/<int:service_id>/trainer/<int:trainer_id>/delete', methods=['POST'])
 def delete_trainer(service_id, trainer_id):
@@ -2270,4 +2316,3 @@ def get_revenue():
 if __name__ == '__main__':
 
     socketio.run(app, debug=True, port=5001)
-

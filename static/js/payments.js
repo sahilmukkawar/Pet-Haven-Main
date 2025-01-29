@@ -1,11 +1,11 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('paymentForm');
     const paymentMethods = document.getElementsByName('paymentMethod');
     const paymentDetails = document.querySelectorAll('.payment-details');
 
     // Handle payment method selection
     paymentMethods.forEach(method => {
-        method.addEventListener('change', function() {
+        method.addEventListener('change', function () {
             paymentDetails.forEach(details => {
                 details.style.display = 'none'; // Hide all payment details
             });
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Form submission handling
-    form.addEventListener('submit', async function(e) {
+    form.addEventListener('submit', async function (e) {
         e.preventDefault();
         let isValid = true;
         const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
@@ -53,11 +53,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: JSON.stringify(getPaymentData(selectedMethod.value)),
                 });
 
-                if (response.ok) {
-                    alert('Payment Successful!');
-                    window.location.href = '/customer_dashboard';
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Use the redirect URL from the server response
+                    window.location.href = data.redirect;
                 } else {
-                    throw new Error('Payment failed');
+                    throw new Error(data.message || 'Payment failed');
                 }
             } catch (error) {
                 alert('Payment failed. Please try again.');
@@ -111,10 +113,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const currentDate = new Date();
             const currentMonth = currentDate.getMonth() + 1;
             const currentYear = currentDate.getFullYear() % 100;
-            
+
             const inputMonth = parseInt(month, 10);
             const inputYear = parseInt(year, 10);
-            
+
             if (inputYear < currentYear || (inputYear === currentYear && inputMonth < currentMonth)) {
                 expiryError.textContent = 'Card has expired';
                 isValid = false;
@@ -144,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Format card number with spaces
     function formatCardNumber(input) {
-        input.addEventListener('input', function(e) {
+        input.addEventListener('input', function (e) {
             let value = e.target.value.replace(/\s/g, '');
             if (value.length > 16) {
                 value = value.substr(0, 16);
@@ -160,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Format expiry date
     function formatExpiryDate(input) {
-        input.addEventListener('input', function(e) {
+        input.addEventListener('input', function (e) {
             let value = e.target.value.replace(/\D/g, '');
             if (value.length > 4) {
                 value = value.substr(0, 4);
