@@ -246,7 +246,7 @@ def home():
 def admin_dashboard():
     trainers = TrainerInfo.query.filter_by(status=False).all()  # Fetch all pending trainers
     active_users = User.query.count()  # Count active users
-    pending_documents = User.query.filter(TrainerInfo.status==False).count()  # Count pending documents
+    pending_documents = db.session.query(User).join(TrainerInfo).filter(TrainerInfo.status == False).count()  # Count pending documents
     service_providers = User.query.filter(User.role=='trainer', User.verified==True).count()  # Count service providers
     unverified_trainers = User.query.filter(User.role=='trainer', User.verified==False).count()  # Count unverified trainers
     notifications = Notification.query.order_by(Notification.created_at.desc()).all()
@@ -256,7 +256,11 @@ def admin_dashboard():
 @app.route('/trainer_dashboard')
 @login_required
 def trainer_dashboard():
-    return render_template('trainer_dashboard.html', user=current_user)
+    # Fetch the trainer info based on the current user
+    trainer = TrainerInfo.query.filter_by(trainer_id=current_user.id).first()
+    
+    # Render the template with both user and trainer info
+    return render_template('trainer_dashboard.html', user=current_user, trainer=trainer)
 
 @app.route('/customer_dashboard')
 @login_required
@@ -2054,13 +2058,14 @@ def add_trainer(service_id):
 
         if request.method == 'POST':
             trainer_name = request.form.get('trainer-name')
+            trainer_number = request.form.get('trainer-number')
             experience = request.form.get('experience')
             rating = request.form.get('rating')
             description = request.form.get('description')
             profile_pic = request.files.get('profile-pic')
 
             # Validate required fields
-            if not all([trainer_name, experience, rating, description, profile_pic]):
+            if not all([trainer_name, trainer_number, experience, rating, description, profile_pic]):
                 flash("All fields are required!", "error")
                 return render_template('add_trainer.html', service=service)
 
@@ -2087,6 +2092,7 @@ def add_trainer(service_id):
             new_trainer = Trainer(
                 service_id=service_id,
                 tname=trainer_name,
+                mobile_number=trainer_number,
                 experience=f"{experience} years",
                 rating=float(rating),
                 description=description,
@@ -2310,6 +2316,116 @@ def get_revenue():
     }
 
     return jsonify(data)
+
+@app.route('/trainer_dashboard/edit_details', methods=['GET', 'POST'])
+@login_required
+def edit_details():
+    # Fetch trainer details for the current user
+    trainer = Trainer.query.filter_by(mobile_number=current_user.mobile_number).first()
+    trainer_info = TrainerInfo.query.filter_by(trainer_id=current_user.id).first()  # Fetch TrainerInfo based on current_user.id
+
+    if not trainer:
+        flash('Trainer not found!', 'danger')
+        return redirect(url_for('trainer_dashboard'))
+
+    if request.method == 'POST':
+        # Fetch new values from the form
+        new_name = request.form.get('tname')
+        new_mobile_number = request.form.get('mobile_number')
+
+        # Check if the mobile number is changed
+        if new_mobile_number != current_user.mobile_number:
+            # Ensure the new mobile number is not already taken in Trainer, User, and TrainerInfo tables
+            existing_trainer = Trainer.query.filter_by(mobile_number=new_mobile_number).first()
+            existing_user = User.query.filter_by(mobile_number=new_mobile_number).first()
+            existing_trainer_info = TrainerInfo.query.filter_by(phone_number=new_mobile_number).first()
+
+            if existing_trainer or existing_user or existing_trainer_info:
+                flash('This mobile number is already in use.', 'danger')
+                return redirect(url_for('edit_details'))
+
+            # Update all tables where mobile number exists
+            Trainer.query.filter_by(mobile_number=current_user.mobile_number).update({"mobile_number": new_mobile_number})
+            User.query.filter_by(mobile_number=current_user.mobile_number).update({"mobile_number": new_mobile_number})
+            
+            # Fetch and update the TrainerInfo instance
+            if trainer_info:
+                trainer_info.phone_number = new_mobile_number
+                trainer_info.trainer_id = current_user.id  # Ensure this is linked properly
+
+        # Handle profile picture upload
+        profile_pic = request.files.get('profile_pic')  # Assuming 'profile_pic' is the name of the file input field
+        profile_pic_path = trainer.profile_pic  # Default to current profile picture path
+
+        if profile_pic:
+            filename = secure_filename(profile_pic.filename)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            unique_filename = f"{timestamp}_{filename}"
+
+            # Make sure the upload folder exists
+            if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                os.makedirs(app.config['UPLOAD_FOLDER'])
+
+            profile_pic.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+
+            profile_pic_path = f"../static/images/{unique_filename}"  # Assuming the folder is static/images
+
+        # Update Trainer table
+        trainer.tname = new_name
+        trainer.experience = request.form.get('experience')
+        trainer.rating = request.form.get('rating')
+        trainer.description = request.form.get('description')
+        trainer.profile_pic = profile_pic_path  # Update the profile picture path
+
+        # Update User table
+        current_user.name = new_name
+
+        # Update TrainerInfo table
+        if trainer_info:
+            trainer_info.full_name = new_name
+
+        try:
+            db.session.commit()
+            flash('Trainer details updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred while updating trainer details: {str(e)}', 'danger')
+
+        return redirect(url_for('trainer_dashboard'))
+
+    return render_template('edit_details.html', trainer=trainer)
+
+
+@app.route('/request_edit/<int:trainer_id>', methods=['POST'])
+@login_required
+def request_edit(trainer_id):
+    trainer = TrainerInfo.query.get(trainer_id)
+    if trainer:
+        trainer.status = True  # Set status to False for Verified
+        db.session.commit()
+        
+    return redirect(url_for('edit_details'))
+
+
+@app.route('/trainer_dashboard/session-details')
+@login_required
+def session_details():
+    # Ensure the user is a trainer
+    trainer = Trainer.query.filter_by(mobile_number=current_user.mobile_number).first()
+    if not trainer:
+        flash('Trainer not found!', 'danger')
+        return redirect(url_for('trainer_dashboard'))
+
+    # Fetch session details for the trainer
+    sessions = (
+        db.session.query(Booking, Service, TimeSlot)
+        .join(Service, Booking.service_id == Service.id)
+        .join(TimeSlot, Booking.timeslot_id == TimeSlot.id)
+        .filter(Booking.trainer_id == trainer.id)
+        .all()
+    )
+
+    return render_template('session_details.html', sessions=sessions, trainer=trainer)
 
 
 # Run the app

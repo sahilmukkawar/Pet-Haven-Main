@@ -12,7 +12,14 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Trainer Dashboard</a>
             <div class="d-flex">
+                <a href="{{ url_for('session_details') }}" class="btn" style="background-color:rgba(141, 216, 87, 0.8); color: white;">Session details</a>
                 <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+                {% if user and user.verified %}
+                <form action="{{ url_for('request_edit', trainer_id=trainer.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-primary">Edit Details</button>
+                </form>
+                {% endif %}
+
             </div>
         </div>
     </nav>

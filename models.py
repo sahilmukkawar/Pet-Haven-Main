@@ -208,6 +208,7 @@ class Trainer(db.Model):
     experience = db.Column(db.String(100), nullable=False)
     rating = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text, nullable=False)
+    mobile_number = db.Column(db.String(15), unique=True)
     profile_pic = db.Column(db.String(200), nullable=False)
     status = db.Column(db.String(20), default='active')
 
