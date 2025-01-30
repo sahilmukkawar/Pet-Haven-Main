@@ -39,17 +39,11 @@ app.config['MAIL_PASSWORD'] = 'adgz kwhe mchu mrnj'
 # Define the upload folder path in your config
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads')
 
-#team3
-
-
 # Configuration for file uploads
 UPLOAD_FOLDER = os.path.join('static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-#team 3 end
-
 
 # Ensure the uploads folder exists (create if it doesn't)
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -128,15 +122,15 @@ with app.app_context():
         db.session.add_all(services)
         db.session.commit()
 
-        trainers = [
-            Trainer(tname="John Doe", experience="5 years", rating=4.5, description="Expert groomer.", profile_pic="../static/images/man1.jpg", service_id=1),
-            Trainer(tname="Jane Smith", experience="3 years", rating=4.8, description="Specializes in relaxation techniques.", profile_pic="../static/images/man2.jpg", service_id=2),
-            Trainer(tname="Michael Johnson", experience="7 years", rating=4.7, description="Veteran in pet grooming and hygiene.", profile_pic="../static/images/man3.jpg", service_id=1),
-            Trainer(tname="Emily Brown", experience="4 years", rating=4.9, description="Expert in pet relaxation therapy.", profile_pic="../static/images/man4.jpg", service_id=2),
-            Trainer(tname="David Wilson", experience="6 years", rating=4.6, description="Provides excellent healthcare guidance for pets.", profile_pic="../static/images/man5.jpg", service_id=3),
-        ]
-        db.session.add_all(trainers)
-        db.session.commit()
+        # trainers = [
+        #     Trainer(tname="John Doe", experience="5 years", rating=4.5, description="Expert groomer.", profile_pic="../static/images/man1.jpg", service_id=1),
+        #     Trainer(tname="Jane Smith", experience="3 years", rating=4.8, description="Specializes in relaxation techniques.", profile_pic="../static/images/man2.jpg", service_id=2),
+        #     Trainer(tname="Michael Johnson", experience="7 years", rating=4.7, description="Veteran in pet grooming and hygiene.", profile_pic="../static/images/man3.jpg", service_id=1),
+        #     Trainer(tname="Emily Brown", experience="4 years", rating=4.9, description="Expert in pet relaxation therapy.", profile_pic="../static/images/man4.jpg", service_id=2),
+        #     Trainer(tname="David Wilson", experience="6 years", rating=4.6, description="Provides excellent healthcare guidance for pets.", profile_pic="../static/images/man5.jpg", service_id=3),
+        # ]
+        # db.session.add_all(trainers)
+        # db.session.commit()
 
         slots = [
         "09:00 AM", "10:00 AM", "11:00 AM",
@@ -1661,6 +1655,51 @@ def complete_payment():
         flash("Error completing registration", "danger")
         return redirect(url_for('payments4'))
     
+
+@app.route('/register4', methods=['GET', 'POST'])
+def register4():
+    service_id = request.args.get('service_id')
+    service = Competition.query.get(service_id)
+
+    if not service:
+        flash("Service not found!", "danger")
+        return redirect(url_for('home4'))
+
+    if request.method == 'POST':
+        try:
+            name = request.form.get('name')
+            breed = request.form.get('breed')
+            age = request.form.get('age')
+            event = service.title
+
+            if not all([name, breed, age]):
+                flash("All fields are required!", "danger")
+                return render_template('register4.html', service=service)
+
+            try:
+                age = int(age)
+                if age < 0:
+                    raise ValueError("Age must be positive")
+            except ValueError as e:
+                flash(f"Invalid age: {str(e)}", "danger")
+                return render_template('register4.html', service=service)
+
+            # Store registration data in session instead of database
+            session['registration_data'] = {
+                'name': name,
+                'breed': breed,
+                'age': age,
+                'event': event
+            }
+            
+            return redirect(url_for('details4'))
+
+        except Exception as e:
+            logger.error(f"Error during registration process: {e}")
+            flash(f"Error: {str(e)}", "danger")
+            return render_template('register4.html', service=service)
+
+    return render_template('register4.html', service=service)
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #team 3#
 

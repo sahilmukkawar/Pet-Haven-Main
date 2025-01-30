@@ -228,6 +228,9 @@ button.available {
 background-color: #4caf50;
 }
 
+
+  
+
 button.booked {
 background-color: #ccc;
 cursor: not-allowed;

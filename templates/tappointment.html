@@ -17,14 +17,7 @@
        </div>
        <ul class="nav-links">
          <li><a href="/trainer_dashboard" class="nav-link" id="home-link"><i class="fas fa-home"></i> Home</a></li>
-         <li class="dropdown">
-           <a href="#" class="dropdown-toggle"><i class="fa-solid fa-user"></i> Account <span>&#9662;</span></a>
-           <ul class="dropdown-menu">
-             <li><a href="/cart"><i class="fas fa-shopping-cart"></i> Cart</a></li>
-             <li><a href="/services" class="nav-link" id="services-link"><i class="fa-solid fa-spa"></i> Services</a></li>
-             <li><a href="{{ url_for('trainers_by_service', service_id=service.id) }}" class="nav-link" id="tariners-link"><i class="fas fa-running"></i> Trainers</a></li>
-           </ul>
-         </li>           
+             <li><a href="/tservices" class="nav-link" id="services-link"><i class="fa-solid fa-spa"></i> Services</a></li>
        </ul>
     </nav>
     <div class="appointment-container">

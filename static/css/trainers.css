@@ -206,41 +206,26 @@ header h1 {
 }
 
 
-/* Back Button Styles */
-.back-button {
-  background: rgb(55, 129, 43);
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  color: #e1ebe1;
-  cursor: pointer;
-  width: 120px;
-  height: 35px;
-  margin-right: 50px;
-  transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
-  transform: translateY(-30px);
-}
-
-.back-button:hover {
-  background: #45a049;
-  color: white;
-}
 .trainer-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  margin-top: 5rem;
+  display: flex;
+  justify-content: center;
   gap: 20px;
+  flex-wrap: wrap;
   padding: 20px;
-
-
 }
 
 .trainer-card {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 20px;
   text-align: center;
   background-color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .trainer-card img {
@@ -254,25 +239,28 @@ header h1 {
 }
 
 .trainer-card p {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.trainer-card .trainer-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.trainer-card .trainer-details span {
+  margin: 5px 0;
+  font-size: 1em;
+}
+
+
+.trainer-card p {
   font-size: 1em;
   margin-bottom: 8px;
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.button {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #4CAF50;
-  color: white;
-  text-decoration: none;
-  border-radius: 5px;
-  font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 0.3s;
-}
-
-.button:hover {
-  background-color: #45a049;
-}
 
 /* Trainer image */
 img {
@@ -288,6 +276,7 @@ img {
 .button {
   background-color: #4caf50;
   color: white;
+  font-family: Arial, Helvetica, sans-serif;
   border: none;
   padding: 10px 15px;
   border-radius: 5px;
@@ -301,4 +290,38 @@ img {
 .button:hover {
   background-color: #45a049;
   transform: scale(1.05);
+}
+
+.action-buttons {
+  margin-top: 15px;
+}
+
+.action-buttons .edit-btn {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 15px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 5px;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+
+}
+  
+
+.action-buttons .delete-btn {
+  background-color: #e92323;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 15px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 5px;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
 }
