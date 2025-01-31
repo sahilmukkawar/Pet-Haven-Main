@@ -41,15 +41,6 @@
             <p><strong>Time: </strong> {{ service.time }}</p>
             <p><strong>Description: </strong> {{ service.description }}</p>
             <p><strong>Price: ₹</strong> {{ service.price }}</p>
-
-            <!-- Join Button -->
-            <!-- <button class="btn-join">
-              <a href="{{ url_for('register4', service_id=service.id) }}"
-                >Join Event</a
-              >
-            </button> -->
-
-            <!-- Delete and Edit Buttons -->
             <div class="button-group">
               <form
                 action="{{ url_for('delete_competition', service_id=service.id) }}"

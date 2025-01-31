@@ -1396,28 +1396,34 @@ def validate_service_data(title, date, time, description):
     return errors
 
 @app.route('/admin4/events')
+@login_required
 def admin_events():
     try:
-        # Query all registrations
-        registrations = db.session.query(DogDetails).all()
+        # Query competitions and count of paid registrations
+        competition_stats = db.session.query(
+            Competition.title,
+            db.func.count(Cart.id).label('registration_count')
+        ).join(
+            Cart,
+            Competition.id == Cart.service_id
+        ).filter(
+            Cart.confirm_booking == True
+        ).group_by(
+            Competition.title
+        ).all()
         
-        # Group registrations by event
-        events_dict = {}
-        for registration in registrations:
-            if registration.event not in events_dict:
-                events_dict[registration.event] = []
-            events_dict[registration.event].append({
-                'id': registration.id,
-                'name': registration.name,
-                'breed': registration.breed,
-                'age': registration.age,
-            })
+        # Convert to dictionary for template
+        competitions_dict = {
+            comp.title: comp.registration_count 
+            for comp in competition_stats
+        }
         
-        return render_template('admin_events.html', events_dict=events_dict)
+        return render_template('admin_events.html', competitions_dict=competitions_dict)
     except Exception as e:
-        logger.error(f"Error fetching registrations: {e}")
-        flash("Error loading registrations", "danger")
+        logger.error(f"Error fetching competition statistics: {e}")
+        flash("Error loading competition statistics", "danger")
         return redirect(url_for('admin4'))
+    
     
 
 @app.route('/admin4/add_competition', methods=['GET', 'POST'])
@@ -1578,18 +1584,19 @@ def edit_competition4(service_id):
 @app.route('/myevents4')
 def myevents4():
     try:
-        latest_registration = db.session.query(DogDetails).order_by(DogDetails.id.desc()).first()
-
-        events_dict = {}
-        if latest_registration:
-            events_dict[latest_registration.event] = [{
-                'id': latest_registration.id,
-                'name': latest_registration.name,
-                'breed': latest_registration.breed,
-                'age': latest_registration.age,
-            }]
+        # Get all confirmed competition payments for the current user from Revenue table
+        paid_competitions = db.session.query(Competition.title).join(
+        Cart,
+        Competition.id == Cart.service_id
+        ).filter(
+            Cart.user_id == current_user.id,
+            Cart.confirm_booking == True,
+        ).distinct().all()
+    
+        # Extract competition names into a list
+        competition_list = [comp[0] for comp in paid_competitions]
         
-        return render_template('myevents4.html', events_dict=events_dict)
+        return render_template('myevents4.html', competition_list=competition_list)
     except Exception as e:
         logger.error(f"Error fetching registration: {e}")
         flash("Error loading registration", "danger")
