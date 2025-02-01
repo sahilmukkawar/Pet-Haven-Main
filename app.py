@@ -1848,9 +1848,9 @@ def confirm_appointment(service_id):
     return redirect(url_for('booking_confirmation', booking_id=booking.id))
 
 SERVICE_PRICES = {
-    'Grooming': 50,
-    'Relaxation Therapy': 40,
-    'Health Care': 30
+    'Grooming': 1500,
+    'Relaxation Therapy': 1350,
+    'Health Care': 2000
 }
 
 @app.route('/booking-confirmation/<int:booking_id>', methods=['GET'])
