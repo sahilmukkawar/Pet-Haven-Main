@@ -920,9 +920,9 @@ def add_dog():
         image = request.form['image']
 
         new_dog = Dog(breed=breed, age=age, price=price, image=image, traits=traits,
-                      vaccination_details=vaccination_details, health_info=health_info,
-                      grooming_info=grooming_info, trainability=trainability, height=height, weight=weight)
-        
+                        vaccination_details=vaccination_details, health_info=health_info,
+                        grooming_info=grooming_info, trainability=trainability, height=height, weight=weight)
+            
         db.session.add(new_dog)
         db.session.commit()
 
@@ -1108,9 +1108,9 @@ def cart():
     total_price = sum(item.price * item.quantity for item in cart_items)
     
     return render_template('cart.html', 
-                         cart_items=cart_items,
-                         total_quantity=total_quantity,
-                         total_price=total_price)
+                            cart_items=cart_items,
+                            total_quantity=total_quantity,
+                            total_price=total_price)
 
 # Remove dog from cart
 @app.route('/remove_from_cart/<int:cart_id>', methods=['POST'])
@@ -1294,8 +1294,7 @@ def process_checkout():
     cart_items = Cart.query.filter_by(user_id=current_user.id , confirm_booking=False).all()
 
     if not cart_items:
-        flash('Your cart is empty. Please add items before checking out.', 
-              )
+        flash('Your cart is empty. Please add items before checking out.', )
         return redirect('/cart')
 
     # Clear the cart after checkout
@@ -1352,6 +1351,34 @@ def submit_payment():
         db.session.commit()
         print("Booking confirmed and database updated.")  # Debug: Log success
         
+        # Send the confirmation email to the user
+        try:
+            # Prepare the email content
+            email_content = "Dear {},\n\nThank you for your purchase on Pet Heaven! Here is the summary of your order:\n".format(current_user.name)
+            for item in cart_items:
+                email_content += f"- {item.dog.breed if item.dog else 'Unknown Dog'} with Trainer: {item.trainer.tname if item.trainer else 'Unknown Trainer'}\n"
+                if item.competition:
+                    email_content += f"  Competition: {item.competition.title}\n"
+                email_content += f"Total Price: ${item.price}\n\n"
+
+            email_content += "We appreciate your business!\n\nBest Regards,\nPet Heaven Team"
+
+            # Send the email to the user
+            msg = Message(
+                "Booking Confirmation from Pet Heaven",
+                sender=app.config['MAIL_USERNAME'],
+                recipients=[current_user.email]  # Make sure you have current_user's email
+            )
+            msg.body = email_content
+            mail.send(msg)
+
+            print("Confirmation email sent.")  # Debug: Log email sending
+
+        except Exception as e:
+            app.logger.error(f"Failed to send confirmation email: {str(e)}")
+            # Optionally, add a flash message or handle failure accordingly
+            flash('Booking email could not be sent. Please check your inbox later.', 'warning')
+
         # Redirect to the confirmation page
         return jsonify({
             "success": True, 
@@ -1836,7 +1863,7 @@ def confirm_appointment(service_id):
         timeslot_id=timeslot_id
     )
     
-    try:
+    try:    
         db.session.add(booking)
         db.session.commit()
         flash('Appointment booked successfully!', 'success')
@@ -1844,6 +1871,19 @@ def confirm_appointment(service_id):
         db.session.rollback()
         flash('An error occurred while booking. Please try again.', 'error')
         return redirect(url_for('direct_appointment', trainer_id=trainer_id, service_id=service_id))
+
+    # Send confirmation email
+    try:
+        msg = Message(
+            "Appointment Confirmed",
+            sender=app.config['MAIL_USERNAME'],
+            recipients=[data['email']]
+        )
+        msg.body = f"Dear {data['name']},\n\nThank you for booking an appointment on Pet Heaven. Your booking has been confirmed successfully.\n\nBest Regards,\nPet Heaven Team"
+        mail.send(msg)
+    except Exception as e:
+        app.logger.error(f"Failed to send Booking Confirmation email: {str(e)}")
+        flash('Booking Confirmation email could not be sent. Please check your inbox later.', 'warning')
     
     return redirect(url_for('booking_confirmation', booking_id=booking.id))
 
@@ -2224,6 +2264,19 @@ def edit_trainer(trainer_id):
                 flash("Error updating trainer details", "error")
                 return render_template('edit_trainer.html', trainer=trainer)
 
+            try:
+                msg = Message(
+                        "Details Successfully Updated!",
+                        sender=app.config['MAIL_USERNAME'],
+                        recipients=[reg_details['email']]
+                    )
+                msg.body = f"Dear {reg_details['name']},\n\nYour account details has been updated successfully.\n\nBest Regards,\nPet Heaven Team"
+                mail.send(msg)
+                
+            except Exception as e:
+                app.logger.error(f"Failed to send Update details confirmation email: {str(e)}")
+                flash('Account details update email could not be sent. Please check your inbox later.', 'warning')
+
         # GET request: Render the edit form with the trainer's details
         return render_template('edit_trainer.html', trainer=trainer)
 
@@ -2237,7 +2290,6 @@ def edit_trainer(trainer_id):
 def delete_trainer(service_id, trainer_id):
     try:
         trainer = Trainer.query.get_or_404(trainer_id)
-
         # Delete the profile picture file if it exists
         if trainer.profile_pic:
             try:
@@ -2326,8 +2378,8 @@ def get_revenue():
     .group_by(Revenue.trainer_name)
     .order_by(
         (func.coalesce(func.sum(Revenue.dog_sales), 0) +
-         func.coalesce(func.sum(Revenue.commission), 0) +
-         func.coalesce(func.sum(Revenue.competition_amount), 0)).desc()
+            func.coalesce(func.sum(Revenue.commission), 0) +
+            func.coalesce(func.sum(Revenue.competition_amount), 0)).desc()
     ).all())
 
     # Competition revenue breakdown
@@ -2422,10 +2474,8 @@ def edit_details():
         trainer.rating = request.form.get('rating')
         trainer.description = request.form.get('description')
         trainer.profile_pic = profile_pic_path  # Update the profile picture path
-
         # Update User table
         current_user.name = new_name
-
         # Update TrainerInfo table
         if trainer_info:
             trainer_info.full_name = new_name
@@ -2476,5 +2526,4 @@ def session_details():
 
 # Run the app
 if __name__ == '__main__':
-
     socketio.run(app, debug=True, port=5001)
