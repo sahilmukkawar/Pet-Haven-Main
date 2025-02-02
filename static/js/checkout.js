@@ -130,6 +130,65 @@ function validateTerms() {
     termsError.style.display = 'none';
     return true;
 }
+function validateDogName() {
+    const dogName = document.getElementById('dog-name');
+    const dogNameError = document.getElementById('dogNameError');
+    const nameRegex = /^[a-zA-Z\s]{2,50}$/;
+
+    if (!dogName.value.trim()) {
+        dogName.classList.add('input-error');
+        if (dogNameError) dogNameError.style.display = 'block';
+        return false;
+    }
+    if (!nameRegex.test(dogName.value.trim())) {
+        dogName.classList.add('input-error');
+        if (dogNameError) dogNameError.style.display = 'block';
+        return false;
+    }
+    dogName.classList.remove('input-error');
+    if (dogNameError) dogNameError.style.display = 'none';
+    return true;
+}
+
+function validateBreed() {
+    const breed = document.getElementById('breed');
+    const breedError = document.getElementById('breedError');
+    const breedRegex = /^[a-zA-Z\s]{2,50}$/;
+
+    if (!breed.value.trim()) {
+        breed.classList.add('input-error');
+        if (breedError) breedError.style.display = 'block';
+        return false;
+    }
+    if (!breedRegex.test(breed.value.trim())) {
+        breed.classList.add('input-error');
+        if (breedError) breedError.style.display = 'block';
+        return false;
+    }
+    breed.classList.remove('input-error');
+    if (breedError) breedError.style.display = 'none';
+    return true;
+}
+
+function validateAge() {
+    const age = document.getElementById('age');
+    const ageError = document.getElementById('ageError');
+    const ageValue = parseInt(age.value.trim());
+
+    if (!age.value.trim()) {
+        age.classList.add('input-error');
+        if (ageError) ageError.style.display = 'block';
+        return false;
+    }
+    if (isNaN(ageValue) || ageValue < 0 || ageValue > 360) {
+        age.classList.add('input-error');
+        if (ageError) ageError.style.display = 'block';
+        return false;
+    }
+    age.classList.remove('input-error');
+    if (ageError) ageError.style.display = 'none';
+    return true;
+}
 
 // Add event listeners for real-time validation
 document.getElementById('fullName').addEventListener('blur', validateFullName);
@@ -158,17 +217,69 @@ function validateCheckoutForm() {
            isHouseNoValid && isLandmarkValid && isCityValid && 
            isStateValid && isPincodeValid && isTermsAccepted;
 }
+// Add this to your DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    // Add error message elements if they don't exist
+    const dogFields = [
+        { id: 'dog-name', error: 'dogNameError', message: 'Please enter a valid dog name (letters and spaces only)' },
+        { id: 'breed', error: 'breedError', message: 'Please enter a valid breed (letters and spaces only)' },
+        { id: 'age', error: 'ageError', message: 'Please enter a valid age between 0 and 360 months' }
+    ];
 
-// Pay Now button handler
-document.getElementById('payNow').addEventListener('click', function(event) {
-    event.preventDefault();
-    
-    if (validateCheckoutForm()) {
-        // Proceed with the payment
-        window.location.href = '/payments'; // Redirect to payment page
+    dogFields.forEach(field => {
+        const input = document.getElementById(field.id);
+        if (input && !document.getElementById(field.error)) {
+            const errorDiv = document.createElement('div');
+            errorDiv.id = field.error;
+            errorDiv.className = 'error-message';
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = field.message;
+            input.parentNode.insertBefore(errorDiv, input.nextSibling);
+        }
+    });
+
+    // Add event listeners for dog form fields
+    const dogName = document.getElementById('dog-name');
+    const breed = document.getElementById('breed');
+    const age = document.getElementById('age');
+
+    if (dogName) dogName.addEventListener('blur', validateDogName);
+    if (breed) breed.addEventListener('blur', validateBreed);
+    if (age) age.addEventListener('blur', validateAge);
+
+    // Modify your existing validateCheckoutForm function to include dog validation
+    const originalValidateCheckoutForm = validateCheckoutForm;
+    validateCheckoutForm = function() {
+        let isValid = originalValidateCheckoutForm();
+        
+        // Only validate dog fields if they exist in the form
+        if (document.getElementById('dog-name')) {
+            const isDogNameValid = validateDogName();
+            const isBreedValid = validateBreed();
+            const isAgeValid = validateAge();
+            isValid = isValid && isDogNameValid && isBreedValid && isAgeValid;
+        }
+        
+        return isValid;
+    };
+    const payNowButton = document.getElementById('payNow');
+    if (payNowButton) {
+        payNowButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            
+            if (validateCheckoutForm()) {
+                // Proceed with the payment
+                window.location.href = '/payments';
+            } else {
+                // Scroll to the first error
+                const firstError = document.querySelector('.input-error');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
     }
 });
-
 // Terms and Conditions Modal Logic
 document.getElementById('termsLink').addEventListener('click', function (event) {
     event.preventDefault();

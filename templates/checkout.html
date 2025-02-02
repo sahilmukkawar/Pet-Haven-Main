@@ -81,7 +81,31 @@
                                 <div id="pincodeError" class="error-message">Please enter a valid 6-digit PIN code</div>
                             </div>
                         </div>
-
+                        {%for it in cart_data.cart_items%}
+                        {%if it.title%}
+                            <form id="dogRegistrationForm" novalidate>
+                                <h3>Enter dog details for registration:</h3>
+                                <div class="form-group">
+                                    <label for="dog-name">Dog's Name:</label>
+                                    <input type="text" id="dog-name" name="name" value="{{ request.form.name }}"
+                                        placeholder="Enter your dog's name" required>
+                                    <div id="dogNameError" class="error-message">Please enter a valid dog name (letters and spaces only)</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="breed">Breed:</label>
+                                    <input type="text" id="breed" name="breed" value="{{ request.form.breed }}"
+                                        placeholder="Enter breed" required>
+                                    <div id="breedError" class="error-message">Please enter a valid breed (letters and spaces only)</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="age">Age (in months):</label>
+                                    <input type="number" id="age" name="age" value="{{ request.form.age }}"
+                                        placeholder="Enter age in months" required>
+                                    <div id="ageError" class="error-message">Please enter a valid age between 0 and 360 months</div>
+                                </div>
+                            </form>
+                        {%endif%}
+                    {%endfor%}
                         <div class="terms-checkbox">
                             <input type="checkbox" id="terms" required>
                             <label for="terms">
