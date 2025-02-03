@@ -1329,11 +1329,26 @@ def submit_payment():
         if not cart_items:
             print("Cart is empty.")  # Debug
             return "No items in the cart to confirm", 400
-        
+                # Initialize summaries and total price
+        dog_summary = {}
+        trainer_summary = {}
+        competition_summary = {}
+        total_price = 0
+
         # Update the confirm_booking column for all cart items of the user
         for item in cart_items:
             print(f"Updating item {item.id} to confirm booking.")  # Debug: Log item updates
             item.confirm_booking = True  # Set confirm_booking to True
+
+            # Add to summaries for email
+            if item.dog:
+                dog_summary[item.dog.breed] = dog_summary.get(item.dog.breed, 0) + item.price
+            if item.trainer:
+                trainer_summary[item.trainer.tname] = trainer_summary.get(item.trainer.tname, 0) + item.price
+            if item.competition:
+                competition_summary[item.competition.title] = competition_summary.get(item.competition.title, 0) + item.price
+            
+            total_price += item.price
 
             # Transfer the cart item to the Revenue table
             revenue_entry = Revenue(
@@ -1352,44 +1367,53 @@ def submit_payment():
         print("Booking confirmed and database updated.")  # Debug: Log success
         
         # Send the confirmation email to the user
-        try:
             # Prepare the email content
-            email_content = "Dear {},\n\nThank you for your purchase on Pet Heaven! Here is the summary of your order:\n".format(current_user.name)
-            for item in cart_items:
-                email_content += f"- {item.dog.breed if item.dog else 'Unknown Dog'} with Trainer: {item.trainer.tname if item.trainer else 'Unknown Trainer'}\n"
-                if item.competition:
-                    email_content += f"  Competition: {item.competition.title}\n"
-                email_content += f"Total Price: ${item.price}\n\n"
+        email_content = "Dear {},\n\nThank you for your purchase on Pet Heaven! Here is the summary of your order:\n".format(current_user.name)
+        if dog_summary:
+            email_content += "\nDogs Purchased:\n"
+            for dog, price in dog_summary.items():
+                email_content += f"- {dog}: ₹{price}\n"
 
-            email_content += "We appreciate your business!\n\nBest Regards,\nPet Heaven Team"
+        if trainer_summary:
+            email_content += "\nTrainers Booked:\n"
+            for trainer, price in trainer_summary.items():
+                email_content += f"- {trainer}: ₹{price}\n"
 
-            # Send the email to the user
+        if competition_summary:
+            email_content += "\nCompetitions Registered:\n"
+            for competition, price in competition_summary.items():
+                email_content += f"- {competition}: ₹{price}\n"
+
+        email_content += f"\nTotal Price: ₹{total_price}\n"
+        email_content += "We appreciate your business!\n\nBest Regards,\nTeam Pet Heaven"
+
+            # Send Confirmation Email
+        try:
             msg = Message(
-                "Booking Confirmation from Pet Heaven",
-                sender=app.config['MAIL_USERNAME'],
-                recipients=[current_user.email]  # Make sure you have current_user's email
+                subject="Booking Confirmation from Pet Heaven",
+                sender=app.config['MAIL_USERNAME'],  # Ensure this is set in your config
+                recipients=[current_user.email]
             )
             msg.body = email_content
             mail.send(msg)
-
-            print("Confirmation email sent.")  # Debug: Log email sending
+            print("Confirmation email sent successfully.")  # Debugging log
 
         except Exception as e:
             app.logger.error(f"Failed to send confirmation email: {str(e)}")
-            # Optionally, add a flash message or handle failure accordingly
             flash('Booking email could not be sent. Please check your inbox later.', 'warning')
-
-        # Redirect to the confirmation page
+            
+            # Return a success response with redirect URL
         return jsonify({
             "success": True, 
             "redirect": url_for('thank_you')
-        }), 200 
+        }), 200
 
     except Exception as e:
         # Handle any errors and rollback if needed
         db.session.rollback()
         print(f"An error occurred: {str(e)}")  # Debug: Log error
         return f"An error occurred: {str(e)}", 500
+
 
 #team 4 routes
 @app.route('/c')
@@ -1873,17 +1897,17 @@ def confirm_appointment(service_id):
         return redirect(url_for('direct_appointment', trainer_id=trainer_id, service_id=service_id))
 
     # Send confirmation email
-    try:
-        msg = Message(
-            "Appointment Confirmed",
-            sender=app.config['MAIL_USERNAME'],
-            recipients=[data['email']]
-        )
-        msg.body = f"Dear {data['name']},\n\nThank you for booking an appointment on Pet Heaven. Your booking has been confirmed successfully.\n\nBest Regards,\nPet Heaven Team"
-        mail.send(msg)
-    except Exception as e:
-        app.logger.error(f"Failed to send Booking Confirmation email: {str(e)}")
-        flash('Booking Confirmation email could not be sent. Please check your inbox later.', 'warning')
+    # try:
+    #     msg = Message(
+    #         "Appointment Confirmed",
+    #         sender=app.config['MAIL_USERNAME'],
+    #         recipients=[date['email']]
+    #     )
+    #     msg.body = f"Dear {date['name']},\n\nThank you for booking an appointment on Pet Heaven. Your booking has been confirmed successfully.\n\nBest Regards,\nPet Heaven Team"
+    #     mail.send(msg)
+    # except Exception as e:
+    #     app.logger.error(f"Failed to send Booking Confirmation email: {str(e)}")
+    #     flash('Booking Confirmation email could not be sent. Please check your inbox later.', 'warning')
     
     return redirect(url_for('booking_confirmation', booking_id=booking.id))
 
