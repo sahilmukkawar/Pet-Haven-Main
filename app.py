@@ -1968,7 +1968,14 @@ def payment_success():
     mail.send(msg)
 
     return jsonify({"message": "Notification sent!"}), 200
+@app.route('/payment-failure', methods=['POST'])
+def payment_failure():
+    data = request.json
+    msg = Message("Payment Failure", recipients=[data['customer_email']])
+    msg.body = f"Dear {data['customer_name']},\n\nYour payment of {data['amount']/100} INR failed. Please try again.\n\nBest Regards,\nDog Spa Team"
+    mail.send(msg)
 
+    return jsonify({"message": "Notification sent!"}), 200
 #-------------------------------------
 #-------------------------------------------
 # Routes for Admin
@@ -2166,18 +2173,21 @@ def delete_service(service_id):
         service = Service.query.get_or_404(service_id)
         
         # Delete all trainers associated with the service
-        Trainer.query.filter_by(service_id=service_id).delete()
+        trainers = Trainer.query.filter_by(service_id=service_id).all()
+        for trainer in trainers:
+            db.session.delete(trainer)
         
         # Delete the service
         db.session.delete(service)
         db.session.commit()
+        
         flash('Service and associated trainers deleted successfully!', 'success')
-        return redirect(url_for('admin_services'))
     except Exception as e:
         db.session.rollback()
         logger.error(f"Error deleting service: {str(e)}")
-        flash('Failed to delete service', 'error')
-    return redirect(url_for('admin3'))
+        flash('Failed to delete service. Error: {}'.format(str(e)), 'error')
+    
+    return redirect(url_for('admin_services'))
 
 @app.route('/admin_services')
 def admin_services():
@@ -2590,6 +2600,71 @@ def session_details():
 
     return render_template('session_details.html', sessions=sessions, trainer=trainer)
 
+@app.route('/add_admin', methods=['GET', 'POST'])
+@login_required
+def add_admin():
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))
+
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        number = request.form['number']
+        password = request.form['password']
+
+        if not all([name, email, number, password]):
+            flash('All fields are required.', 'danger')
+            return redirect(url_for('add_admin'))
+
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('Email already exists. Please use a different email.', 'danger')
+            return redirect(url_for('add_admin'))
+
+        existing_user = User.query.filter_by(mobile_number=number).first()
+        if existing_user:
+            flash('Mobile number already exists. Please use a different number.', 'danger')
+            return redirect(url_for('add_admin'))
+
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        new_admin = User(
+            name=name,
+            email=email,
+            mobile_number=number,
+            password=hashed_password,
+            role='admin'
+        )
+        db.session.add(new_admin)
+        db.session.commit()
+
+        # Send email to the new admin
+        try:
+            msg = Message(
+                "Admin Account Created",
+                sender=app.config['MAIL_USERNAME'],
+                recipients=[email]
+            )
+            msg.body = f"Dear {name},\n\nYour admin account has been created successfully.\n Your account email:- {email} \n pasword={password}.\n\nBest Regards,\nPet Haven Team"
+            mail.send(msg)
+        except Exception as e:
+            app.logger.error(f"Failed to send Admin Account email: {str(e)}")
+            flash('Admin Account email could not be sent. Please check your inbox later.', 'warning')
+
+        # Notify admin about the new admin addition
+        notification_message = f"New admin added: {new_admin.name} ({new_admin.email})"
+        new_notification = Notification(
+            message=notification_message,
+            user_id=new_admin.id
+        )
+        db.session.add(new_notification)
+        db.session.commit()
+        socketio.emit('new_notification', {'message': notification_message, 'created_at': datetime.utcnow().isoformat()})
+
+        flash('New admin added successfully!', 'success')
+        return redirect(url_for('admin_dashboard'))
+
+    return render_template('admin/add_admin.html')
 
 # Run the app
 if __name__ == '__main__':

@@ -275,11 +275,11 @@
         <div class="edit-remove-buttons">
           <a href="{{ url_for('edit_service', service_id=service.id) }}" class="edit-button"><i class="fa fa-edit"></i>
             Edit</a>
-          <form action="{{ url_for('delete_service', service_id=service.id) }}" method="POST" style="display: inline;">
+          <form action="{{ url_for('delete_service', service_id=service.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this service and all associated trainers?');">
+            <input type="hidden" name="_method" value="POST">
             <button type="submit" class="delete-button"><i class="fa fa-trash"></i> Remove</button>
             <a href="{{ url_for('admin_trainer', service_id=service.id) }}" class="view-trainers-button">View
               Trainers</a>
-
           </form>
         </div>
       </div>
