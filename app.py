@@ -904,6 +904,18 @@ def admin_view():
     return render_template('index.html', dogs=dogs, admin=True)
 
 # Add dog
+# Configure upload folder
+UPLOAD_FOLDER = 'static/images'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Ensure upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    """Check if file has a valid extension"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/add_dog', methods=['GET', 'POST'])
 def add_dog():
     if request.method == 'POST':
@@ -917,16 +929,32 @@ def add_dog():
         trainability = request.form['trainability']
         height = request.form['height']
         weight = request.form['weight']
-        image = request.form['image']
 
-        new_dog = Dog(breed=breed, age=age, price=price, image=image, traits=traits,
-                        vaccination_details=vaccination_details, health_info=health_info,
-                        grooming_info=grooming_info, trainability=trainability, height=height, weight=weight)
+        # Handle Image Upload
+        if 'image' not in request.files:
+            return "No file part"
+        
+        file = request.files['image']
+        
+        if file.filename == '':
+            return "No selected file"
+        
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
             
-        db.session.add(new_dog)
-        db.session.commit()
+            # Store relative path in DB
+            image_path = f"images/{filename}"
 
-        return redirect(url_for('admin_view'))  
+            new_dog = Dog(breed=breed, age=age, price=price, image=image_path, traits=traits,
+                          vaccination_details=vaccination_details, health_info=health_info,
+                          grooming_info=grooming_info, trainability=trainability, height=height, weight=weight)
+
+            db.session.add(new_dog)
+            db.session.commit()
+
+            return redirect(url_for('admin_view'))
 
     return render_template('add.html')
 
@@ -2313,20 +2341,36 @@ def edit_trainer(trainer_id):
 @app.route('/admin_services/<int:service_id>/trainer/<int:trainer_id>/delete', methods=['POST'])
 def delete_trainer(service_id, trainer_id):
     try:
+        print(f"Deleting Trainer ID: {trainer_id}")  # Debugging Step
+        
         trainer = Trainer.query.get_or_404(trainer_id)
-        # Delete the profile picture file if it exists
+        if not trainer:
+            flash("Trainer not found!", "error")
+            return redirect(url_for('admin_trainer', service_id=service_id))
+
+        # Delete related records in TrainerInfo
+        TrainerInfo.query.filter_by(trainer_id=trainer_id).delete()
+
+        # Delete related records in TrainerEditRequest
+        TrainerEditRequest.query.filter_by(trainer_id=trainer_id).delete()
+
+        # Delete associated bookings
+        Booking.query.filter_by(trainer_id=trainer_id).delete()
+
+        # Delete trainer profile picture if it exists
         if trainer.profile_pic:
             try:
-                image_path = trainer.profile_pic.replace('../static/', '')
-                profile_pic_path = os.path.join(app.config['UPLOAD_FOLDER'], image_path)
+                image_path = trainer.profile_pic.replace('../static/', 'static/')
+                profile_pic_path = os.path.join(app.root_path, image_path)
                 if os.path.exists(profile_pic_path):
                     os.remove(profile_pic_path)
             except Exception as e:
                 logger.error(f"Error deleting profile picture: {e}")
 
-        # Delete from database
+        # Delete trainer from DB
         db.session.delete(trainer)
         db.session.commit()
+
         flash("Trainer deleted successfully!", "success")
         return redirect(url_for('admin_trainer', service_id=service_id))
 
@@ -2335,7 +2379,6 @@ def delete_trainer(service_id, trainer_id):
         logger.error(f"Error deleting trainer: {e}")
         flash(f"Error deleting trainer: {str(e)}", "error")
         return redirect(url_for('admin_trainer', service_id=service_id))
-
 
 #team 5
 
