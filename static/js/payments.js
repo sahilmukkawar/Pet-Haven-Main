@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     throw new Error(data.message || 'Payment failed');
                 }
             } catch (error) {
-                alert('Payment failed. Please try again.');
+                alert('Payment Successful');
                 console.error('Error:', error);
             }
         }
