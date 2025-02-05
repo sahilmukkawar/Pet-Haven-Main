@@ -282,20 +282,22 @@ body {
     }
 
 
-.buynow-btn {
-    background-color: #007bff;
-    color: #fff;
-    padding: 0.8rem;
-    border: none;
-    width: 100%;
-    font-size: 1rem;
-    font-weight: bold;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-bottom: 1.2rem;
-    transition: background-color 0.2s ease;
-}
-
+    .buynow-btn {
+      background-color: #007bff !important;
+      color: #fff !important;
+      padding: 0.8rem !important;
+      border: none !important;
+      width: 100% !important;
+      font-size: 1rem !important;
+      text-decoration: none !important;
+      font-weight: bold !important;
+      border-radius: 5px !important;
+      cursor: pointer !important;
+      margin-bottom: 1.2rem !important;
+      transition: background-color 0.2s ease !important;
+  }
+  
+  
 .buynow-btn:hover {
     background-color: #0056b3;
 }
@@ -329,15 +331,6 @@ p {
   margin: 0.25rem 0;
   text-align: center; 
 }
-
-.buynow-btn {
-  display: block;
-  text-align: center;
-  text-decoration: none;
-  color: #f2f4f7;
-}
-
-
 
 .flash-container {
   position: fixed;

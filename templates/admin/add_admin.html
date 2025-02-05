@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/add.css') }}" />
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,7 +19,7 @@
         }
 
         .container {
-            background-color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.7);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
@@ -29,12 +30,12 @@
         h2 {
             text-align: center;
             margin-bottom: 20px;
-            color: #388e3c;
+            color:rgb(0, 0, 0);
         }
 
         label {
             font-weight: bold;
-            color: #388e3c;
+            color:rgb(0, 0, 0);
         }
 
         input[type="text"], input[type="email"], input[type="password"] {
@@ -104,22 +105,6 @@
             }
         }
 
-        a {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            text-decoration: none;
-            background-color: #2e7d32;
-            color: #ffffff;
-            padding: 10px;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        a:hover {
-            background-color: #1b5e20;
-        }
-
     </style>
     <script>
         function validateForm() {
@@ -183,7 +168,6 @@
     </script>
 </head>
 <body>
-    <a href="/admin_dashboard">&larr; Back to Dashboard</a>
     <div class="container">
         <h2>Add Admin</h2>
         <div class="message">
@@ -214,6 +198,7 @@
 
             <button type="submit">Add Admin</button>
         </form>
+        <a href="/admin_dashboard"> Back to Dashboard</a>
     </div>
 </body>
 </html>
