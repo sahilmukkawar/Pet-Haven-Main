@@ -335,7 +335,8 @@ text-decoration: none;
 
 
 .icon-btn.remove-btn {
-background: #d32f2f; 
+background: #d32f2f;
+cursor: pointer; 
 }
 
 .icon-btn.remove-btn:hover {

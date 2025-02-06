@@ -215,6 +215,8 @@
                 <textarea 
                     id="description" 
                     name="description" 
+                    minlength="10"
+                    maxlength="200"
                     required
                 >{{ service.description }}</textarea>
             </div>
@@ -227,7 +229,7 @@
                     name="price"
                     value="{{ service.price }}"
                     placeholder="Enter price"
-                    min="0"
+                    min="1"
                     step="0.01"
                 />
             </div>
@@ -238,5 +240,105 @@
             </div>
         </form>
     </div>
+    <script>
+        const form = document.querySelector('.competition-form');
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'errorMessages';
+        errorDiv.className = 'error-messages';
+        form.appendChild(errorDiv);
+
+        // Form validation
+        form.addEventListener("submit", function (event) {
+        const errorMessages = [];
+        const competitionName = document.getElementById("competition_name").value.trim();
+        const dateStr = document.getElementById("date").value.trim();
+        const timeStr = document.getElementById("time").value.trim().toLowerCase();
+        const description = document.getElementById("description").value.trim();
+        const price = document.getElementById("price").value;
+
+        // Name validation
+        if (!/^[A-Za-z\s]{3,50}$/.test(competitionName)) {
+            errorMessages.push("Competition name must be 3-50 characters and contain only letters and spaces");
+            event.preventDefault();
+        }
+
+        // Date validation
+        const dateRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
+        const dateMatch = dateStr.match(dateRegex);
+        if (!dateMatch) {
+            errorMessages.push("Date must be in DD-MM-YYYY format");
+            event.preventDefault();
+        } else {
+            // Convert DD-MM-YYYY to YYYY-MM-DD for Date object
+            const [_, day, month, year] = dateMatch;
+            const dateObj = new Date(`${year}-${month}-${day}`);
+
+            // Time validation
+            const timeRegex = /^(0?[1-9]|1[0-2]):([0-5][0-9])\s*(am|pm)$/i;
+            const timeMatch = timeStr.match(timeRegex);
+            if (!timeMatch) {
+            errorMessages.push("Time must be in HH:MM am/pm format");
+            event.preventDefault();
+            } else {
+            let [_, hours, minutes, period] = timeMatch;
+            hours = parseInt(hours);
+            minutes = parseInt(minutes);
+            
+            // Convert to 24-hour format
+            if (period.toLowerCase() === 'pm' && hours < 12) hours += 12;
+            if (period.toLowerCase() === 'am' && hours === 12) hours = 0;
+
+            // Set the time on our date object
+            dateObj.setHours(hours, minutes, 0, 0);
+
+            // Compare with current date/time
+            const now = new Date();
+            if (dateObj < now) {
+                if (dateObj.toDateString() === now.toDateString()) {
+                errorMessages.push("Competition time cannot be in the past for today's date");
+                } else {
+                errorMessages.push("Competition date cannot be in the past");
+                }
+                event.preventDefault();
+            }
+            }
+        }
+
+        // Description validation
+        if (description.length < 10 || description.length > 200) {
+            errorMessages.push("Description must be between 10 and 200 characters");
+            event.preventDefault();
+        }
+
+        // Price validation
+        if (parseFloat(price) < 1) {
+            errorMessages.push("Price must be a positive value");
+            event.preventDefault();
+        }
+
+        // Display error messages
+        if (errorMessages.length > 0) {
+            errorDiv.innerHTML = errorMessages.join("<br>");
+            errorDiv.style.display = 'block';
+        } else {
+            errorDiv.innerHTML = "";
+            errorDiv.style.display = 'none';
+        }
+        });
+
+        // Add some basic styling for error messages
+        const style = document.createElement('style');
+        style.textContent = `
+        .error-messages {
+            color: red;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid red;
+            border-radius: 4px;
+            display: none;
+        }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>
