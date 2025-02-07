@@ -7,20 +7,17 @@ from flask import Flask, jsonify, render_template, request, redirect, url_for, s
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import Booking, Cart, Competition, Dog, DogDetails, Service, TimeSlot, Trainer, TrainerEditRequest, UserDetails, Wishlist, db, User, Notification,TrainerInfo,Revenue
-from flask_socketio import SocketIO, emit
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_socketio import SocketIO
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_mail import Mail, Message
 from flask_migrate import Migrate
-from random import randint
 from datetime import datetime, timedelta, timezone
 import logging
+from werkzeug.utils import secure_filename
 from sqlalchemy import func
 
 ## team 3 imports
 
-from werkzeug.utils import secure_filename
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from flask_mail import Mail, Message
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -56,6 +53,12 @@ socketio = SocketIO(app)
 #team3 extension
 migrate = Migrate(app, db)
 
+def get_current_time():
+    now_utc = datetime.now(timezone.utc)
+    # IST is UTC + 5:30
+    ist_offset = timedelta(hours=5, minutes=30)
+    now_ist = now_utc + ist_offset
+    return now_ist.date(), now_ist.time()
 
 # Initialize Flask-Login's LoginManager
 login_manager = LoginManager()
@@ -223,7 +226,9 @@ def send_otp(email):
         msg.body = f"Your OTP is: {otp}. It will expire in 10 minutes."
         mail.send(msg)
         print(otp)
-        otp_generation_time = datetime.utcnow().isoformat() 
+
+        current_date, current_time = get_current_time()
+        otp_generation_time = datetime.combine(current_date, current_time).isoformat()
         return otp, otp_generation_time
     
     except Exception as e:
@@ -376,7 +381,11 @@ def verify_otp():
         stored_otp, otp_generation_time = session.get('verification_otp'), session.get('otp_generation_time')  
         otp_generation_time = datetime.fromisoformat(otp_generation_time)
         otp_expiration_time = otp_generation_time + timedelta(minutes=10)
-        if datetime.utcnow() > otp_expiration_time:
+
+        current_date, current_time = get_current_time()
+        current_datetime = datetime.combine(current_date, current_time)
+
+        if current_datetime > otp_expiration_time:
             flash('OTP has expired.', 'danger')
             return redirect(url_for('resend_otp'))
         
@@ -385,7 +394,7 @@ def verify_otp():
                 user = User.query.filter_by(email=session['login_email']).first()
                 if user:
                     remember_me = session.get('remember_me', False)
-                    user.last_login = datetime.utcnow()
+                    user.last_login = current_datetime
                     login_user(user, remember=remember_me)
                     db.session.commit()
                     session.pop('login_email', None)
@@ -419,7 +428,7 @@ def verify_otp():
                 
                 db.session.add(new_notification)
                 db.session.commit()
-                socketio.emit('new_notification', {'message': notification_message, 'created_at': datetime.utcnow().isoformat()})
+                socketio.emit('new_notification', {'message': notification_message, 'created_at': current_datetime.isoformat()})
                 try:
                     msg = Message(
                         "Registration Successful!",
@@ -501,7 +510,12 @@ def reset_password():
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
         otp_generation_time = datetime.fromisoformat(session.get('otp_generation_time'))
-        if datetime.utcnow() - otp_generation_time > timedelta(minutes=10):
+
+        current_date, current_time = get_current_time()
+        current_datetime = datetime.combine(current_date, current_time)
+
+
+        if current_datetime - otp_generation_time > timedelta(minutes=10):
             session.pop('password_reset_email', None)
             session.pop('verification_otp', None)
             session.pop('otp_generation_time', None)
@@ -636,7 +650,10 @@ def submit_trainer_info():
         db.session.add(new_notification)
         db.session.commit()
 
-        socketio.emit('new_notification', {'message': notification_message, 'created_at': datetime.utcnow().isoformat()})
+        current_date, current_time = get_current_time()
+        current_datetime = datetime.combine(current_date, current_time)
+        
+        socketio.emit('new_notification', {'message': notification_message, 'created_at': current_datetime.isoformat()})
         flash('Trainer information submitted successfully!', 'success')
 
         try:
@@ -1688,13 +1705,6 @@ def schedule4():
     return render_template('schedule4.html', competitions=competitions)
 
 
-def get_current_time():
-    now_utc = datetime.now(timezone.utc)
-    # IST is UTC + 5:30
-    ist_offset = timedelta(hours=5, minutes=30)
-    now_ist = now_utc + ist_offset
-    return now_ist.date(), now_ist.time()
-
 # Add a new route to handle payment completion
 @app.route('/complete_payment', methods=['POST'])
 def complete_payment():
@@ -2659,7 +2669,9 @@ def add_admin():
         )
         db.session.add(new_notification)
         db.session.commit()
-        socketio.emit('new_notification', {'message': notification_message, 'created_at': datetime.utcnow().isoformat()})
+        current_date, current_time = get_current_time()
+        current_datetime = datetime.combine(current_date, current_time)
+        socketio.emit('new_notification', {'message': notification_message, 'created_at': current_datetime.isoformat()})
 
         flash('New admin added successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
