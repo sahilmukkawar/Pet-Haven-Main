@@ -943,7 +943,8 @@ def admin_view():
                         (price_filter == '>40000' and dog.price > 40000)
                      ))]
 
-    return render_template('index.html', dogs=filtered_dogs, admin=True)
+    return render_template('index.html', dogs=filtered_dogs,admin=True)
+
 
 # Add dog
 # Configure upload folder
