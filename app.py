@@ -2678,6 +2678,6 @@ def add_admin():
 
     return render_template('admin/add_admin.html')
 
-# Run the app
 if __name__ == '__main__':
-    socketio.run(app, debug=False, port=5001)
+    port = int(os.environ.get("PORT", 5001))  
+    socketio.run(app, host="0.0.0.0", port=port, debug=False)
