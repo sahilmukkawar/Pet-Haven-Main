@@ -257,7 +257,6 @@ def admin_dashboard():
 def trainer_dashboard():
     # Fetch the trainer info based on the current user
     trainer = TrainerInfo.query.filter_by(trainer_id=current_user.id).first()
-    
     # Render the template with both user and trainer info
     return render_template('trainer_dashboard.html', user=current_user, trainer=trainer)
 
@@ -768,6 +767,10 @@ def trainer_info(trainer_id):
 @app.route('/admin_dashboard/user_search', methods=['GET', 'POST'])
 @login_required  # Ensure only logged-in users can access this route
 def user_search():
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))
+    
     users = []
     error_message = None
     if request.method == 'POST':
@@ -837,7 +840,8 @@ def mark_notifications_read():
 @login_required
 def all_notifications():
     if current_user.role != 'admin':
-        return {'error': 'Unauthorized'}, 403  # Return an error if not admin
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home')) and {'error': 'Unauthorized'}, 403  # Return an error if not admin
 
     # Get the offset from the query parameters
     offset = int(request.args.get('offset', 0))  # Default to 0 if not provided
@@ -917,6 +921,10 @@ def user_view():
 # Admin view (list of dogs)
 @app.route('/admin')
 def admin_view():
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))  # Redirect to a safe page
+    
     dogs = Dog.query.all()
     return render_template('index.html', dogs=dogs, admin=True)
 
@@ -935,6 +943,10 @@ def allowed_file(filename):
 
 @app.route('/add_dog', methods=['GET', 'POST'])
 def add_dog():
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))
+    
     if request.method == 'POST':
         breed = request.form['breed']
         age = request.form['age']
@@ -1468,8 +1480,13 @@ def home4():
 
 @app.route('/admin4')
 def admin4():
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))  # Redirect to a safe page
+    
     services = Competition.query.all()
     return render_template('admin4.html', services=services)
+
 def validate_service_data(title, date, time, description):
     errors = []
     
@@ -1494,6 +1511,10 @@ def validate_service_data(title, date, time, description):
 @app.route('/admin4/events')
 @login_required
 def admin_events():
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))  # Redirect to a safe page
+    
     try:
         # Query competitions and count of paid registrations
         competition_stats = db.session.query(
@@ -1524,6 +1545,10 @@ def admin_events():
 
 @app.route('/admin4/add_competition', methods=['GET', 'POST'])
 def add_competition():
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))
+    
     if request.method == 'POST':
         try:
             # Get form data
@@ -1596,6 +1621,10 @@ def add_competition():
 
 @app.route('/admin4/delete_competition/<int:service_id>', methods=['POST'])
 def delete_competition(service_id):
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))  # Redirect to a safe page
+    
     try:
         service = Competition.query.get_or_404(service_id)
         db.session.delete(service)
@@ -1611,6 +1640,10 @@ def delete_competition(service_id):
 
 @app.route('/admin4/edit_competition4/<int:service_id>', methods=['GET', 'POST'])
 def edit_competition4(service_id):
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))  # Redirect to a safe page
+    
     try:
         service = Competition.query.get_or_404(service_id)
         
@@ -2035,6 +2068,10 @@ def payment_failure():
 
 @app.route('/add_services', methods=['GET', 'POST'])
 def add_services():
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))
+    
     if request.method == 'POST':
         try:
             # Get form data
@@ -2201,19 +2238,30 @@ def delete_service(service_id):
 
 @app.route('/admin_services')
 def admin_services():
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))  # Redirect to a safe page
+    
     services = Service.query.all()
     return render_template('admin_services.html', services=services)
 
 @app.route('/admin_services/<int:service_id>/admin_trainer')
 def admin_trainer(service_id):
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))  # Redirect to a safe page
+    
     service = Service.query.get_or_404(service_id)
     return render_template('admin_trainer.html', service=service)
 
 @app.route('/admin_services/<int:service_id>/add_trainer', methods=['GET', 'POST'])
 def add_trainer(service_id):
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))  # Redirect to a safe page
+    
     try:
         service = Service.query.get_or_404(service_id)
-
         if request.method == 'POST':
             trainer_name = request.form.get('trainer-name')
             trainer_number = request.form.get('trainer-number')
@@ -2360,6 +2408,10 @@ def edit_trainer(trainer_id):
 
 @app.route('/admin_services/<int:service_id>/trainer/<int:trainer_id>/delete', methods=['POST'])
 def delete_trainer(service_id, trainer_id):
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))  # Redirect to a safe page
+    
     try:
         print(f"Deleting Trainer ID: {trainer_id}")  # Debugging Step
         
@@ -2404,6 +2456,10 @@ def delete_trainer(service_id, trainer_id):
 
 @app.route('/r')
 def index():
+    if current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))  # Redirect to a safe page
+    
     return render_template('index5.html')
 
 @app.route('/api/revenue')
