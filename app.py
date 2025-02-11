@@ -772,26 +772,52 @@ def user_view():
     # Apply filters
     filtered_dogs = [dog for dog in dogs if
                      (breed_filter.lower() in dog.breed.lower() if breed_filter else True) and
-                     (age_filter == '<5' and dog.age < 5 or
-                      age_filter == '5-10' and 5 <= dog.age <= 10 or
-                      age_filter == '10-15' and 10 <= dog.age <= 15 or
-                      age_filter == '15-20' and 15 <= dog.age <= 20 or
-                      age_filter == '>20' and dog.age > 20 or
-                      not age_filter) and
-                     (price_filter == '<10000' and dog.price < 10000 or
-                      price_filter == '10000-20000' and 10000 <= dog.price <= 20000 or
-                      price_filter == '20000-30000' and 20000 <= dog.price <= 30000 or
-                      price_filter == '30000-40000' and 30000 <= dog.price <= 40000 or
-                      price_filter == '>40000' and dog.price > 40000 or
-                      not price_filter)]
+                     (not age_filter or (
+                        (age_filter == '<5' and dog.age < 5) or
+                        (age_filter == '5-10' and 5 <= dog.age <= 10) or
+                        (age_filter == '10-15' and 10 <= dog.age <= 15) or
+                        (age_filter == '15-20' and 15 <= dog.age <= 20) or
+                        (age_filter == '>20' and dog.age > 20)
+                     )) and
+                     (not price_filter or (
+                        (price_filter == '<10000' and dog.price < 10000) or
+                        (price_filter == '10000-20000' and 10000 <= dog.price <= 20000) or
+                        (price_filter == '20000-30000' and 20000 <= dog.price <= 30000) or
+                        (price_filter == '30000-40000' and 30000 <= dog.price <= 40000) or
+                        (price_filter == '>40000' and dog.price > 40000)
+                     ))]
 
     return render_template('index.html', dogs=filtered_dogs, admin=False)
 
-# Admin view (list of dogs)
+
+# Admin view (list of dogs with filtering)
 @app.route('/admin')
 def admin_view():
     dogs = Dog.query.all()
-    return render_template('index.html', dogs=dogs, admin=True)
+    breed_filter = request.args.get('breed', '')
+    age_filter = request.args.get('age', '')
+    price_filter = request.args.get('price', '')
+
+    # Apply filters
+    filtered_dogs = [dog for dog in dogs if
+                     (breed_filter.lower() in dog.breed.lower() if breed_filter else True) and
+                     (not age_filter or (
+                        (age_filter == '<5' and dog.age < 5) or
+                        (age_filter == '5-10' and 5 <= dog.age <= 10) or
+                        (age_filter == '10-15' and 10 <= dog.age <= 15) or
+                        (age_filter == '15-20' and 15 <= dog.age <= 20) or
+                        (age_filter == '>20' and dog.age > 20)
+                     )) and
+                     (not price_filter or (
+                        (price_filter == '<10000' and dog.price < 10000) or
+                        (price_filter == '10000-20000' and 10000 <= dog.price <= 20000) or
+                        (price_filter == '20000-30000' and 20000 <= dog.price <= 30000) or
+                        (price_filter == '30000-40000' and 30000 <= dog.price <= 40000) or
+                        (price_filter == '>40000' and dog.price > 40000)
+                     ))]
+
+    return render_template('index.html', dogs=filtered_dogs,admin=True)
+
 
 # Add dog
 # Configure upload folder
@@ -2551,6 +2577,6 @@ def add_admin():
 
     return render_template('admin/add_admin.html')
 
-# Run the app
 if __name__ == '__main__':
-    socketio.run(app, debug=True, port=5001)
+    port = int(os.environ.get("PORT", 5001))  
+    socketio.run(app, host="0.0.0.0", port=port, debug=False)
