@@ -428,7 +428,6 @@
             <li><a href="/add_admin">Add Admin</a></li>
             <li><a href="/add_dog">Add Dog</a></li>
             <li><a href="/add_services">Add Service</a></li>
-            <!-- <li><a href="#">Add Trainer</a></li> -->
             <li><a href="/admin4/add_competition">Add Competitions</a></li>
             <li><a href="/r">Track Revenue</a></li>
         </ul>
@@ -471,7 +470,7 @@
         <div class="card">
             <div class="welcome-section">
                 <h2>Welcome to Pet Haven Dashboard</h2>
-                <p class="user-desc">Hello, {{ user.name }}! You are logged in as a Admin.</p>
+                <p class="user-desc">Hello, {{ user.name }}! You are logged in as {{ user.role }}.</p>
             </div>
             <div class="metrics">
                 <div class="metric">
